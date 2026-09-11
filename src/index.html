@@ -7,6 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradStudio</title>
     <link rel="stylesheet" href="./css/styles.css">
+
+    <!-- Day 13.8: GS-013 style lesson-specific learning content separately from the existing workspace -->
+    <link rel="stylesheet" href="./css/lesson-content.css">
 </head>
 <body>
     <!-- Day 3.1: GS-003 add responsive global navigation markup -->
@@ -102,6 +105,23 @@
                         <p class="lesson-workspace-context-label">Section context</p>
                         <p id="selected-lesson-context"></p>
 
+                        <!-- Day 13.1: GS-013 add reusable lesson overview and objective targets -->
+                        <section
+                            id="lesson-content"
+                            class="lesson-content"
+                            aria-label="Lesson learning content"
+                            hidden
+                        >
+                            <p class="lesson-workspace-context-label">Lesson overview</p>
+                            <p id="selected-lesson-overview"></p>
+
+                            <p class="lesson-workspace-context-label">Learning objectives</p>
+                            <ul
+                                id="selected-lesson-objectives"
+                                class="lesson-objectives"
+                            ></ul>
+                        </section>
+
                         <!-- Day 12.1: GS-012 add sequential lesson navigation to the workspace -->
                         <nav
                             class="lesson-navigation"
@@ -169,5 +189,8 @@
 
     <!-- Day 2.4: GS-002 load the application JavaScript entry point -->
     <script src="./js/app.js"></script>
+
+    <!-- Day 13.9: GS-013 load lesson content after core learning state restoration -->
+    <script src="./js/lesson-content.js"></script>
 </body>
 </html>

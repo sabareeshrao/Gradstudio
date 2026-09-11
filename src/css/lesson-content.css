@@ -1,0 +1,27 @@
+/* Day 13.8: GS-013 give lesson-specific content clear reading hierarchy */
+.lesson-content {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.lesson-content[hidden] {
+    display: none;
+}
+
+#selected-lesson-overview {
+    margin: 0 0 18px;
+    color: #374151;
+    line-height: 1.7;
+}
+
+.lesson-objectives {
+    margin: 0;
+    padding-left: 22px;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.lesson-objectives li + li {
+    margin-top: 8px;
+}
