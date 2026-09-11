@@ -39,17 +39,53 @@ function getCourseIdFromUrl() {
     return parameters.get("course");
 }
 
+// Day 11.1: GS-011 read the selected lesson id from the URL
+function getLessonIdFromUrl() {
+    const parameters = new URLSearchParams(window.location.search);
+
+    return parameters.get("lesson");
+}
+
 // Day 6.2: GS-006 store course selection in browser history
 function updateCourseUrl(courseId) {
-    if (getCourseIdFromUrl() === courseId) {
+    const currentCourseId = getCourseIdFromUrl();
+    const currentLessonId = getLessonIdFromUrl();
+
+    if (currentCourseId === courseId && !currentLessonId) {
         return;
     }
 
     const url = new URL(window.location.href);
     url.searchParams.set("course", courseId);
 
+    // Day 11.2: GS-011 remove stale lesson state whenever course navigation resets
+    url.searchParams.delete("lesson");
+
     history.pushState(
         { courseId },
+        "",
+        url
+    );
+}
+
+// Day 11.3: GS-011 store lesson selection beside its parent course in browser history
+function updateLessonUrl(courseId, lessonId) {
+    if (
+        getCourseIdFromUrl() === courseId &&
+        getLessonIdFromUrl() === lessonId
+    ) {
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("course", courseId);
+    url.searchParams.set("lesson", lessonId);
+
+    history.pushState(
+        {
+            courseId,
+            lessonId
+        },
         "",
         url
     );
@@ -246,7 +282,7 @@ function clearLessonSelection() {
 }
 
 // Day 10.5: GS-010 centralize lesson selection before future URL or player behavior
-function selectLesson(lessonId) {
+function selectLesson(lessonId, updateUrl = true) {
     const course = courseCatalog.find(
         (candidate) => candidate.id === activeCourseId
     );
@@ -275,6 +311,19 @@ function selectLesson(lessonId) {
     setSelectedLessonButton(
         lessonId
     );
+
+    // Day 11.4: GS-011 keep the owning section visible for selected lessons
+    expandSectionForLesson(
+        match.section.id
+    );
+
+    // Day 11.5: GS-011 add lesson navigation state only for direct user selection
+    if (updateUrl) {
+        updateLessonUrl(
+            course.id,
+            lessonId
+        );
+    }
 }
 
 // Day 6.4: GS-006 clear stale course UI when the URL has no valid selection
@@ -338,6 +387,34 @@ function setCourseSectionExpanded(button, isExpanded) {
     }
 }
 
+// Day 11.4: GS-011 reveal the section that owns a selected or restored lesson
+function expandSectionForLesson(sectionId) {
+    const sections = selectedCourseSections.querySelectorAll(".course-section");
+
+    const targetSection = Array.from(sections).find(
+        (section) => section.dataset.sectionId === sectionId
+    );
+
+    if (!targetSection) {
+        return;
+    }
+
+    const targetButton = targetSection.querySelector(".course-section-toggle");
+
+    if (!targetButton) {
+        return;
+    }
+
+    const sectionButtons = selectedCourseSections.querySelectorAll(".course-section-toggle");
+
+    sectionButtons.forEach((button) => {
+        setCourseSectionExpanded(
+            button,
+            button === targetButton
+        );
+    });
+}
+
 // Day 8.5: GS-008 expand one section at a time through outline-level event delegation
 selectedCourseSections.addEventListener("click", (event) => {
     const sectionButton = event.target.closest(".course-section-toggle");
@@ -386,12 +463,38 @@ function restoreCourseFromUrl() {
     selectCourse(courseId, false);
 }
 
-restoreCourseFromUrl();
+// Day 11.6: GS-011 restore lesson state only after its parent course has been rebuilt
+function restoreLessonFromUrl() {
+    const lessonId = getLessonIdFromUrl();
 
-// Day 6.8: GS-006 synchronize details with browser Back and Forward navigation
+    if (!lessonId) {
+        clearLessonSelection();
+        return;
+    }
+
+    selectLesson(
+        lessonId,
+        false
+    );
+}
+
+// Day 11.7: GS-011 restore course and lesson URL state in hierarchy order
+function restoreLearningStateFromUrl() {
+    restoreCourseFromUrl();
+
+    if (!activeCourseId) {
+        return;
+    }
+
+    restoreLessonFromUrl();
+}
+
+restoreLearningStateFromUrl();
+
+// Day 11.7: GS-011 synchronize complete learning state with browser history
 window.addEventListener(
     "popstate",
-    restoreCourseFromUrl
+    restoreLearningStateFromUrl
 );
 
 // Day 3.8: GS-003 toggle the mobile menu and accessibility state
