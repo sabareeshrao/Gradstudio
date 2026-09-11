@@ -1,9 +1,9 @@
+/* Day 2: GS-002 base application styles */
 * {
     box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -13,13 +13,47 @@ body {
     color: #1f2937;
 }
 
-a {
-    color: inherit;
-}
-
 .container {
     width: min(1100px, calc(100% - 40px));
     margin: 0 auto;
+}
+
+.main-content {
+    min-height: calc(100vh - 140px);
+}
+
+.hero {
+    padding: 100px 0;
+}
+
+.hero-description {
+    max-width: 600px;
+    margin-top: 20px;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.app-status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.site-footer {
+    padding: 20px 0;
+    border-top: 1px solid #d1d5db;
+}
+
+/* Day 3: GS-003 navigation, section, and responsive styles */
+html {
+    scroll-behavior: smooth;
+}
+
+a {
+    color: inherit;
 }
 
 .site-header {
@@ -73,14 +107,6 @@ a {
     cursor: pointer;
 }
 
-.main-content {
-    min-height: calc(100vh - 140px);
-}
-
-.hero {
-    padding: 100px 0;
-}
-
 .eyebrow,
 .section-label {
     margin-bottom: 12px;
@@ -93,13 +119,6 @@ a {
 .hero h1 {
     margin: 0;
     font-size: 48px;
-}
-
-.hero-description {
-    max-width: 600px;
-    margin-top: 20px;
-    font-size: 18px;
-    line-height: 1.6;
 }
 
 .content-section {
@@ -120,20 +139,6 @@ a {
 
 .status-section {
     background: #eef2f7;
-}
-
-.app-status {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 10px 14px;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-}
-
-.site-footer {
-    padding: 20px 0;
-    border-top: 1px solid #d1d5db;
 }
 
 @media (max-width: 700px) {
