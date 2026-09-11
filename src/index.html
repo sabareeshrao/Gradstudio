@@ -8,19 +8,52 @@
 </head>
 <body>
     <header class="site-header">
-        <div class="container">
-            <h1 class="brand">GradStudio</h1>
+        <div class="container header-inner">
+            <a class="brand" href="#home" aria-label="GradStudio home">GradStudio</a>
+
+            <button
+                id="nav-toggle"
+                class="nav-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="primary-navigation"
+            >
+                Menu
+            </button>
+
+            <nav id="primary-navigation" class="site-nav" aria-label="Primary navigation">
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#status">Status</a>
+            </nav>
         </div>
     </header>
 
     <main class="main-content">
-        <section class="hero">
+        <section id="home" class="hero">
             <div class="container">
                 <p class="eyebrow">Learning Platform</p>
-                <h2>Learn by building.</h2>
+                <h1>Learn by building.</h1>
                 <p class="hero-description">
                     GradStudio is being built step by step as a hands-on learning platform.
                 </p>
+            </div>
+        </section>
+
+        <section id="about" class="content-section">
+            <div class="container">
+                <p class="section-label">About</p>
+                <h2>Built one engineering decision at a time.</h2>
+                <p>
+                    Each GradStudio feature is introduced only when the product needs it,
+                    so the repository history explains how the platform evolves.
+                </p>
+            </div>
+        </section>
+
+        <section id="status" class="content-section status-section">
+            <div class="container">
+                <p class="section-label">Application status</p>
                 <p id="app-status" class="app-status">Loading application...</p>
             </div>
         </section>
