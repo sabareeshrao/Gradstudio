@@ -101,6 +101,36 @@
 
                         <p class="lesson-workspace-context-label">Section context</p>
                         <p id="selected-lesson-context"></p>
+
+                        <!-- Day 12.1: GS-012 add sequential lesson navigation to the workspace -->
+                        <nav
+                            class="lesson-navigation"
+                            aria-label="Lesson navigation"
+                        >
+                            <button
+                                id="previous-lesson"
+                                class="lesson-navigation-button"
+                                type="button"
+                                disabled
+                            >
+                                Previous lesson
+                            </button>
+
+                            <p
+                                id="lesson-position"
+                                class="lesson-position"
+                                aria-live="polite"
+                            ></p>
+
+                            <button
+                                id="next-lesson"
+                                class="lesson-navigation-button"
+                                type="button"
+                                disabled
+                            >
+                                Next lesson
+                            </button>
+                        </nav>
                     </section>
                 </section>
             </div>

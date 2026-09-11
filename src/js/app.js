@@ -26,6 +26,11 @@ const selectedLessonCourse = document.querySelector("#selected-lesson-course");
 const selectedLessonSection = document.querySelector("#selected-lesson-section");
 const selectedLessonContext = document.querySelector("#selected-lesson-context");
 
+// Day 12.2: GS-012 wire sequential lesson navigation controls
+const previousLessonButton = document.querySelector("#previous-lesson");
+const nextLessonButton = document.querySelector("#next-lesson");
+const lessonPosition = document.querySelector("#lesson-position");
+
 // Day 10.3: GS-010 keep the active course identity available to lesson selection
 let activeCourseId = null;
 
@@ -279,6 +284,80 @@ function renderLessonWorkspace(course, section, lesson) {
 function clearLessonSelection() {
     lessonWorkspace.hidden = true;
     setSelectedLessonButton(null);
+
+    // Day 12.5: GS-012 reset navigation when no lesson is active
+    previousLessonButton.disabled = true;
+    nextLessonButton.disabled = true;
+    previousLessonButton.dataset.lessonId = "";
+    nextLessonButton.dataset.lessonId = "";
+    lessonPosition.textContent = "";
+}
+
+// Day 12.3: GS-012 derive one navigation sequence from nested course sections
+function getCourseLessonSequence(course) {
+    return course.sections.flatMap(
+        (section) =>
+            section.lessons.map(
+                (lesson) => ({
+                    section,
+                    lesson
+                })
+            )
+    );
+}
+
+// Day 12.4: GS-012 locate the selected lesson inside the course-wide sequence
+function getLessonNavigationState(course, lessonId) {
+    const sequence = getCourseLessonSequence(course);
+
+    const currentIndex = sequence.findIndex(
+        ({ lesson }) => lesson.id === lessonId
+    );
+
+    if (currentIndex === -1) {
+        return null;
+    }
+
+    return {
+        sequence,
+        currentIndex,
+        previous: sequence[currentIndex - 1] ?? null,
+        next: sequence[currentIndex + 1] ?? null
+    };
+}
+
+// Day 12.5: GS-012 synchronize lesson position and navigation boundaries
+function updateLessonNavigation(course, lessonId) {
+    const navigation = getLessonNavigationState(
+        course,
+        lessonId
+    );
+
+    if (!navigation) {
+        previousLessonButton.disabled = true;
+        nextLessonButton.disabled = true;
+        lessonPosition.textContent = "";
+        return;
+    }
+
+    const {
+        sequence,
+        currentIndex,
+        previous,
+        next
+    } = navigation;
+
+    previousLessonButton.disabled = !previous;
+    nextLessonButton.disabled = !next;
+
+    previousLessonButton.dataset.lessonId =
+        previous?.lesson.id ?? "";
+
+    nextLessonButton.dataset.lessonId =
+        next?.lesson.id ?? "";
+
+    lessonPosition.textContent =
+        `Lesson ${currentIndex + 1} of ${sequence.length}`;
 }
 
 // Day 10.5: GS-010 centralize lesson selection before future URL or player behavior
@@ -309,6 +388,12 @@ function selectLesson(lessonId, updateUrl = true) {
     );
 
     setSelectedLessonButton(
+        lessonId
+    );
+
+    // Day 12.5: GS-012 refresh sequential navigation for the selected lesson
+    updateLessonNavigation(
+        course,
         lessonId
     );
 
@@ -449,6 +534,30 @@ selectedCourseSections.addEventListener("click", (event) => {
     selectLesson(
         lessonButton.dataset.lessonId
     );
+});
+
+// Day 12.6: GS-012 navigate backward through the current course
+previousLessonButton.addEventListener("click", () => {
+    const lessonId = previousLessonButton.dataset.lessonId;
+
+    if (!lessonId) {
+        return;
+    }
+
+    // Day 12.7: GS-012 reuse selection so cross-section navigation opens the owning section
+    selectLesson(lessonId);
+});
+
+// Day 12.6: GS-012 navigate forward through the current course
+nextLessonButton.addEventListener("click", () => {
+    const lessonId = nextLessonButton.dataset.lessonId;
+
+    if (!lessonId) {
+        return;
+    }
+
+    // Day 12.7: GS-012 reuse selection so cross-section navigation opens the owning section
+    selectLesson(lessonId);
 });
 
 // Day 6.7: GS-006 restore a shared or refreshed course selection from the URL
