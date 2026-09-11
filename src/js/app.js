@@ -19,6 +19,29 @@ const selectedCourseTopics = document.querySelector("#selected-course-topics");
 // Day 2.8: GS-002 prove JavaScript loaded successfully
 appStatus.textContent = "GradStudio application loaded successfully.";
 
+// Day 6.1: GS-006 read the selected course id from the URL
+function getCourseIdFromUrl() {
+    const parameters = new URLSearchParams(window.location.search);
+
+    return parameters.get("course");
+}
+
+// Day 6.2: GS-006 store course selection in browser history
+function updateCourseUrl(courseId) {
+    if (getCourseIdFromUrl() === courseId) {
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("course", courseId);
+
+    history.pushState(
+        { courseId },
+        "",
+        url
+    );
+}
+
 // Day 4.6: GS-004 convert one course object into card markup
 function createCourseCard(course) {
     return `
@@ -33,6 +56,7 @@ function createCourseCard(course) {
                 class="course-select"
                 type="button"
                 data-course-id="${course.id}"
+                aria-pressed="false"
             >
                 View course
             </button>
@@ -65,6 +89,50 @@ function renderCourseDetails(course) {
     courseDetails.hidden = false;
 }
 
+// Day 6.3: GS-006 expose the current course selection on every card
+function setSelectedCourseCard(courseId) {
+    const buttons = courseGrid.querySelectorAll(".course-select");
+
+    buttons.forEach((button) => {
+        const isSelected = button.dataset.courseId === courseId;
+
+        button.setAttribute(
+            "aria-pressed",
+            String(isSelected)
+        );
+
+        button
+            .closest(".course-card")
+            .classList
+            .toggle("is-selected", isSelected);
+    });
+}
+
+// Day 6.4: GS-006 clear stale course UI when the URL has no valid selection
+function clearCourseSelection() {
+    courseDetails.hidden = true;
+    setSelectedCourseCard(null);
+}
+
+// Day 6.5: GS-006 centralize course selection for clicks, refreshes, and history
+function selectCourse(courseId, updateUrl = true) {
+    const selectedCourse = courseCatalog.find(
+        (course) => course.id === courseId
+    );
+
+    if (!selectedCourse) {
+        clearCourseSelection();
+        return;
+    }
+
+    renderCourseDetails(selectedCourse);
+    setSelectedCourseCard(courseId);
+
+    if (updateUrl) {
+        updateCourseUrl(courseId);
+    }
+}
+
 // Day 5.5: GS-005 resolve course selection through event delegation and stable ids
 courseGrid.addEventListener("click", (event) => {
     const courseButton = event.target.closest(".course-select");
@@ -73,16 +141,29 @@ courseGrid.addEventListener("click", (event) => {
         return;
     }
 
-    const selectedCourse = courseCatalog.find(
-        (course) => course.id === courseButton.dataset.courseId
-    );
+    // Day 6.6: GS-006 route user clicks through the centralized selection flow
+    selectCourse(courseButton.dataset.courseId);
+});
 
-    if (!selectedCourse) {
+// Day 6.7: GS-006 restore a shared or refreshed course selection from the URL
+function restoreCourseFromUrl() {
+    const courseId = getCourseIdFromUrl();
+
+    if (!courseId) {
+        clearCourseSelection();
         return;
     }
 
-    renderCourseDetails(selectedCourse);
-});
+    selectCourse(courseId, false);
+}
+
+restoreCourseFromUrl();
+
+// Day 6.8: GS-006 synchronize details with browser Back and Forward navigation
+window.addEventListener(
+    "popstate",
+    restoreCourseFromUrl
+);
 
 // Day 3.8: GS-003 toggle the mobile menu and accessibility state
 navToggle.addEventListener("click", () => {

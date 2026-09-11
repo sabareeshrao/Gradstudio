@@ -241,6 +241,16 @@ a {
     line-height: 1.5;
 }
 
+/* Day 6.9: GS-006 visually identify the course represented by the URL state */
+.course-card.is-selected {
+    border-width: 2px;
+    border-color: #111827;
+}
+
+.course-card.is-selected .course-select {
+    background: #374151;
+}
+
 /* Day 3.6: GS-003 make navigation responsive on small screens */
 @media (max-width: 700px) {
     .header-inner {
