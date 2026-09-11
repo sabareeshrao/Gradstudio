@@ -195,6 +195,52 @@ a {
     font-weight: 700;
 }
 
+/* Day 5.6: GS-005 style course selection and the reusable details panel */
+.course-select {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: #111827;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.course-select:hover,
+.course-select:focus-visible {
+    background: #374151;
+}
+
+.course-details {
+    max-width: 720px;
+    margin-top: 40px;
+    padding: 28px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.course-details h3 {
+    margin: 8px 0 12px;
+    font-size: 28px;
+}
+
+.course-details h4 {
+    margin-bottom: 12px;
+}
+
+.course-details ul {
+    margin-bottom: 0;
+    padding-left: 22px;
+}
+
+.course-details li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
 /* Day 3.6: GS-003 make navigation responsive on small screens */
 @media (max-width: 700px) {
     .header-inner {
