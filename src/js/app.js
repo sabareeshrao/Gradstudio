@@ -78,10 +78,29 @@ function renderCourseCatalog() {
 
 renderCourseCatalog();
 
+// Day 9.4: GS-009 convert one lesson object into ordered lesson markup
+function createCourseLesson(lesson, index) {
+    return `
+        <li
+            class="course-lesson-item"
+            data-lesson-id="${lesson.id}"
+        >
+            <!-- Day 9.5: GS-009 expose human-friendly lesson order beside stable lesson ids -->
+            <span class="course-lesson-number">Lesson ${index + 1}</span>
+            <span class="course-lesson-title">${lesson.title}</span>
+        </li>
+    `;
+}
+
 // Day 7.4: GS-007 convert one course section into ordered outline markup
 function createCourseSection(section, index) {
     // Day 8.2: GS-008 give each section preview a stable DOM id for aria-controls
     const previewId = `section-preview-${section.id}`;
+
+    // Day 9.4: GS-009 render the section's lesson objects as an ordered lesson list
+    const lessonItems = section.lessons
+        .map(createCourseLesson)
+        .join("");
 
     return `
         <li class="course-section" data-section-id="${section.id}">
@@ -96,7 +115,8 @@ function createCourseSection(section, index) {
                     <span class="course-section-number">Section ${index + 1}</span>
                     <strong>${section.title}</strong>
                 </span>
-                <span class="course-section-lessons">${section.lessons} lessons</span>
+                <!-- Day 9.3: GS-009 derive section counts from actual lesson data -->
+                <span class="course-section-lessons">${section.lessons.length} lessons</span>
             </button>
 
             <!-- Day 8.3: GS-008 keep section preview content hidden until requested -->
@@ -106,6 +126,11 @@ function createCourseSection(section, index) {
                 hidden
             >
                 <p>${section.summary}</p>
+
+                <!-- Day 9.5: GS-009 expose the real ordered lessons inside the expanded section -->
+                <ol class="course-lesson-list">
+                    ${lessonItems}
+                </ol>
             </div>
         </li>
     `;

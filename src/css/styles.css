@@ -314,6 +314,37 @@ a {
     line-height: 1.6;
 }
 
+/* Day 9.6: GS-009 style nested lesson lists without competing with section hierarchy */
+.course-lesson-list {
+    display: grid;
+    gap: 0;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.course-lesson-item {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0;
+    padding: 10px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.course-lesson-number {
+    flex: 0 0 68px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.course-lesson-title {
+    color: #1f2937;
+    line-height: 1.5;
+}
+
 /* Day 6.9: GS-006 visually identify the course represented by the URL state */
 .course-card.is-selected {
     border-width: 2px;
@@ -367,5 +398,16 @@ a {
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
+    }
+
+    /* Day 9.6: GS-009 stack lesson metadata cleanly on narrow screens */
+    .course-lesson-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .course-lesson-number {
+        flex-basis: auto;
     }
 }
