@@ -26,6 +26,10 @@
 
             <nav id="primary-navigation" class="site-nav" aria-label="Primary navigation">
                 <a href="#home">Home</a>
+
+                <!-- Day 4.1: GS-004 expose the course catalog in navigation -->
+                <a href="#courses">Courses</a>
+
                 <a href="#about">About</a>
                 <a href="#status">Status</a>
             </nav>
@@ -41,6 +45,19 @@
                 <p class="hero-description">
                     GradStudio is being built step by step as a hands-on learning platform.
                 </p>
+            </div>
+        </section>
+
+        <!-- Day 4.2: GS-004 add the course catalog rendering target -->
+        <section id="courses" class="content-section courses-section">
+            <div class="container">
+                <p class="section-label">Courses</p>
+                <h2>Start learning with GradStudio.</h2>
+                <p class="section-description">
+                    Choose a course to explore structured, hands-on learning content.
+                </p>
+
+                <div id="course-grid" class="course-grid"></div>
             </div>
         </section>
 
@@ -71,6 +88,9 @@
             <p>GradStudio</p>
         </div>
     </footer>
+
+    <!-- Day 4.3: GS-004 load course data before application rendering -->
+    <script src="./js/course-data.js"></script>
 
     <!-- Day 2.3: GS-002 load the application JavaScript entry point -->
     <script src="./js/app.js"></script>
