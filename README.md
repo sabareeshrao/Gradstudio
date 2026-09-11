@@ -44,7 +44,7 @@ A day should include:
 - Ignore notes, generated previews, temporary logs, experiments, and other reference-repository artifacts that are not part of the actual product.
 - Record technical debt instead of prematurely solving future problems.
 
-<!-- Day 1.5: GS-001 establish the commit convention and baseline state -->
+<!-- Day 1.5: GS-001 establish the commit convention -->
 ## Commit convention
 
 Development commits use the GradStudio learning ticket prefix:
@@ -55,6 +55,7 @@ GS-002 ...
 GS-003 ...
 ```
 
+<!-- Day 1.6: GS-001 record the initial repository state -->
 ## Current state
 
 **GS-001** establishes the project foundation and engineering workflow.
