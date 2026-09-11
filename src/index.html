@@ -77,6 +77,31 @@
                     <!-- Day 7.2: GS-007 add a reusable course-section outline target -->
                     <h4>Course outline</h4>
                     <ol id="selected-course-sections" class="course-outline"></ol>
+
+                    <!-- Day 10.1: GS-010 add one reusable selected-lesson workspace -->
+                    <section
+                        id="lesson-workspace"
+                        class="lesson-workspace"
+                        aria-live="polite"
+                        hidden
+                    >
+                        <p class="lesson-workspace-label">Lesson preview</p>
+                        <h4 id="selected-lesson-title"></h4>
+
+                        <dl class="lesson-workspace-meta">
+                            <div>
+                                <dt>Course</dt>
+                                <dd id="selected-lesson-course"></dd>
+                            </div>
+                            <div>
+                                <dt>Section</dt>
+                                <dd id="selected-lesson-section"></dd>
+                            </div>
+                        </dl>
+
+                        <p class="lesson-workspace-context-label">Section context</p>
+                        <p id="selected-lesson-context"></p>
+                    </section>
                 </section>
             </div>
         </section>

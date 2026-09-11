@@ -19,6 +19,16 @@ const selectedCourseTopics = document.querySelector("#selected-course-topics");
 // Day 7.3: GS-007 wire the selected-course section outline element
 const selectedCourseSections = document.querySelector("#selected-course-sections");
 
+// Day 10.3: GS-010 wire the reusable selected-lesson workspace
+const lessonWorkspace = document.querySelector("#lesson-workspace");
+const selectedLessonTitle = document.querySelector("#selected-lesson-title");
+const selectedLessonCourse = document.querySelector("#selected-lesson-course");
+const selectedLessonSection = document.querySelector("#selected-lesson-section");
+const selectedLessonContext = document.querySelector("#selected-lesson-context");
+
+// Day 10.3: GS-010 keep the active course identity available to lesson selection
+let activeCourseId = null;
+
 // Day 2.8: GS-002 prove JavaScript loaded successfully
 appStatus.textContent = "GradStudio application loaded successfully.";
 
@@ -85,9 +95,17 @@ function createCourseLesson(lesson, index) {
             class="course-lesson-item"
             data-lesson-id="${lesson.id}"
         >
-            <!-- Day 9.5: GS-009 expose human-friendly lesson order beside stable lesson ids -->
-            <span class="course-lesson-number">Lesson ${index + 1}</span>
-            <span class="course-lesson-title">${lesson.title}</span>
+            <!-- Day 10.2: GS-010 turn each lesson row into a native accessible control -->
+            <button
+                class="course-lesson-select"
+                type="button"
+                data-lesson-id="${lesson.id}"
+                aria-pressed="false"
+            >
+                <!-- Day 9.5: GS-009 expose human-friendly lesson order beside stable lesson ids -->
+                <span class="course-lesson-number">Lesson ${index + 1}</span>
+                <span class="course-lesson-title">${lesson.title}</span>
+            </button>
         </li>
     `;
 }
@@ -174,9 +192,99 @@ function setSelectedCourseCard(courseId) {
     });
 }
 
+// Day 10.4: GS-010 resolve a lesson together with the section that owns it
+function findLessonInCourse(course, lessonId) {
+    for (const section of course.sections) {
+        const lesson = section.lessons.find(
+            (candidate) => candidate.id === lessonId
+        );
+
+        if (lesson) {
+            return {
+                section,
+                lesson
+            };
+        }
+    }
+
+    return null;
+}
+
+// Day 10.5: GS-010 expose selected lesson state on the rendered lesson controls
+function setSelectedLessonButton(lessonId) {
+    const buttons = selectedCourseSections.querySelectorAll(".course-lesson-select");
+
+    buttons.forEach((button) => {
+        const isSelected = button.dataset.lessonId === lessonId;
+
+        button.setAttribute(
+            "aria-pressed",
+            String(isSelected)
+        );
+
+        button
+            .closest(".course-lesson-item")
+            .classList
+            .toggle("is-selected", isSelected);
+    });
+}
+
+// Day 10.5: GS-010 render the chosen lesson with its real course and section context
+function renderLessonWorkspace(course, section, lesson) {
+    selectedLessonTitle.textContent = lesson.title;
+    selectedLessonCourse.textContent = course.title;
+    selectedLessonSection.textContent = section.title;
+    selectedLessonContext.textContent = section.summary;
+
+    lessonWorkspace.hidden = false;
+}
+
+// Day 10.7: GS-010 clear lesson UI whenever its parent course state becomes stale
+function clearLessonSelection() {
+    lessonWorkspace.hidden = true;
+    setSelectedLessonButton(null);
+}
+
+// Day 10.5: GS-010 centralize lesson selection before future URL or player behavior
+function selectLesson(lessonId) {
+    const course = courseCatalog.find(
+        (candidate) => candidate.id === activeCourseId
+    );
+
+    if (!course) {
+        clearLessonSelection();
+        return;
+    }
+
+    const match = findLessonInCourse(
+        course,
+        lessonId
+    );
+
+    if (!match) {
+        clearLessonSelection();
+        return;
+    }
+
+    renderLessonWorkspace(
+        course,
+        match.section,
+        match.lesson
+    );
+
+    setSelectedLessonButton(
+        lessonId
+    );
+}
+
 // Day 6.4: GS-006 clear stale course UI when the URL has no valid selection
 function clearCourseSelection() {
+    activeCourseId = null;
     courseDetails.hidden = true;
+
+    // Day 10.7: GS-010 clear any lesson that belonged to the previous course
+    clearLessonSelection();
+
     setSelectedCourseCard(null);
 }
 
@@ -191,7 +299,11 @@ function selectCourse(courseId, updateUrl = true) {
         return;
     }
 
+    // Day 10.7: GS-010 establish the new parent course and discard stale lesson state
+    activeCourseId = selectedCourse.id;
+
     renderCourseDetails(selectedCourse);
+    clearLessonSelection();
     setSelectedCourseCard(courseId);
 
     if (updateUrl) {
@@ -246,6 +358,19 @@ selectedCourseSections.addEventListener("click", (event) => {
     setCourseSectionExpanded(
         sectionButton,
         !wasExpanded
+    );
+});
+
+// Day 10.6: GS-010 select lessons through the existing outline-level event boundary
+selectedCourseSections.addEventListener("click", (event) => {
+    const lessonButton = event.target.closest(".course-lesson-select");
+
+    if (!lessonButton) {
+        return;
+    }
+
+    selectLesson(
+        lessonButton.dataset.lessonId
     );
 });
 

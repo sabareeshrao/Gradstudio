@@ -324,11 +324,8 @@ a {
 }
 
 .course-lesson-item {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
     margin: 0;
-    padding: 10px 0;
+    padding: 0;
     border-top: 1px solid #e5e7eb;
 }
 
@@ -343,6 +340,87 @@ a {
 .course-lesson-title {
     color: #1f2937;
     line-height: 1.5;
+}
+
+/* Day 10.8: GS-010 make lessons interactive and expose the selected lesson clearly */
+.course-lesson-select {
+    width: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 10px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.course-lesson-select:hover,
+.course-lesson-select:focus-visible {
+    background: #eef2f7;
+}
+
+.course-lesson-select[aria-pressed="true"],
+.course-lesson-item.is-selected .course-lesson-select {
+    background: #e5e7eb;
+}
+
+/* Day 10.8: GS-010 give the reusable lesson workspace its own visual hierarchy */
+.lesson-workspace {
+    margin-top: 28px;
+    padding: 20px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+}
+
+.lesson-workspace-label,
+.lesson-workspace-context-label {
+    margin: 0 0 8px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.lesson-workspace h4 {
+    margin: 0 0 18px;
+    font-size: 22px;
+}
+
+.lesson-workspace-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 18px;
+}
+
+.lesson-workspace-meta div {
+    padding: 12px;
+    border-radius: 6px;
+    background: #f3f4f6;
+}
+
+.lesson-workspace-meta dt {
+    margin-bottom: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.lesson-workspace-meta dd {
+    margin: 0;
+    font-weight: 700;
+}
+
+#selected-lesson-context {
+    margin-bottom: 0;
+    color: #4b5563;
 }
 
 /* Day 6.9: GS-006 visually identify the course represented by the URL state */
@@ -400,8 +478,8 @@ a {
         gap: 8px;
     }
 
-    /* Day 9.6: GS-009 stack lesson metadata cleanly on narrow screens */
-    .course-lesson-item {
+    /* Day 10.8: GS-010 stack interactive lesson metadata cleanly on narrow screens */
+    .course-lesson-select {
         align-items: flex-start;
         flex-direction: column;
         gap: 4px;
@@ -409,5 +487,10 @@ a {
 
     .course-lesson-number {
         flex-basis: auto;
+    }
+
+    /* Day 10.8: GS-010 collapse lesson metadata into one column on mobile */
+    .lesson-workspace-meta {
+        grid-template-columns: 1fr;
     }
 }
