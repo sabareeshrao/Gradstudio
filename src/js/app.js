@@ -80,13 +80,33 @@ renderCourseCatalog();
 
 // Day 7.4: GS-007 convert one course section into ordered outline markup
 function createCourseSection(section, index) {
+    // Day 8.2: GS-008 give each section preview a stable DOM id for aria-controls
+    const previewId = `section-preview-${section.id}`;
+
     return `
         <li class="course-section" data-section-id="${section.id}">
-            <div>
-                <span class="course-section-number">Section ${index + 1}</span>
-                <strong>${section.title}</strong>
+            <!-- Day 8.2: GS-008 render each section heading as a real accessible toggle -->
+            <button
+                class="course-section-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="${previewId}"
+            >
+                <span>
+                    <span class="course-section-number">Section ${index + 1}</span>
+                    <strong>${section.title}</strong>
+                </span>
+                <span class="course-section-lessons">${section.lessons} lessons</span>
+            </button>
+
+            <!-- Day 8.3: GS-008 keep section preview content hidden until requested -->
+            <div
+                id="${previewId}"
+                class="course-section-preview"
+                hidden
+            >
+                <p>${section.summary}</p>
             </div>
-            <span class="course-section-lessons">${section.lessons} lessons</span>
         </li>
     `;
 }
@@ -164,6 +184,44 @@ courseGrid.addEventListener("click", (event) => {
 
     // Day 6.6: GS-006 route user clicks through the centralized selection flow
     selectCourse(courseButton.dataset.courseId);
+});
+
+// Day 8.4: GS-008 synchronize aria-expanded and hidden preview state together
+function setCourseSectionExpanded(button, isExpanded) {
+    const previewId = button.getAttribute("aria-controls");
+    const preview = document.getElementById(previewId);
+
+    button.setAttribute(
+        "aria-expanded",
+        String(isExpanded)
+    );
+
+    if (preview) {
+        preview.hidden = !isExpanded;
+    }
+}
+
+// Day 8.5: GS-008 expand one section at a time through outline-level event delegation
+selectedCourseSections.addEventListener("click", (event) => {
+    const sectionButton = event.target.closest(".course-section-toggle");
+
+    if (!sectionButton) {
+        return;
+    }
+
+    const wasExpanded = sectionButton.getAttribute("aria-expanded") === "true";
+    const sectionButtons = selectedCourseSections.querySelectorAll(".course-section-toggle");
+
+    sectionButtons.forEach((button) => {
+        if (button !== sectionButton) {
+            setCourseSectionExpanded(button, false);
+        }
+    });
+
+    setCourseSectionExpanded(
+        sectionButton,
+        !wasExpanded
+    );
 });
 
 // Day 6.7: GS-006 restore a shared or refreshed course selection from the URL
