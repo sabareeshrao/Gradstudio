@@ -241,6 +241,43 @@ a {
     line-height: 1.5;
 }
 
+/* Day 7.6: GS-007 present the selected course as an ordered section outline */
+.course-outline {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.course-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+}
+
+.course-section-number {
+    display: block;
+    margin-bottom: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.course-section-lessons {
+    flex: 0 0 auto;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 700;
+}
+
 /* Day 6.9: GS-006 visually identify the course represented by the URL state */
 .course-card.is-selected {
     border-width: 2px;
@@ -287,5 +324,11 @@ a {
 
     .hero h1 {
         font-size: 38px;
+    }
+
+    .course-section {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
     }
 }

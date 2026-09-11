@@ -12,6 +12,13 @@ const courseCatalog = [
             "Java syntax and variables",
             "Object-oriented programming",
             "Collections and exceptions"
+        ],
+
+        // Day 7.1: GS-007 model the course as ordered sections with lesson counts
+        sections: [
+            { id: "language-basics", title: "Java language basics", lessons: 4 },
+            { id: "object-oriented-java", title: "Object-oriented Java", lessons: 4 },
+            { id: "collections-exceptions", title: "Collections and exceptions", lessons: 4 }
         ]
     },
     {
@@ -26,6 +33,13 @@ const courseCatalog = [
             "Spring Boot application structure",
             "REST controllers and services",
             "Request and response handling"
+        ],
+
+        // Day 7.1: GS-007 model the course as ordered sections with lesson counts
+        sections: [
+            { id: "spring-boot-setup", title: "Spring Boot application setup", lessons: 6 },
+            { id: "rest-api-layer", title: "REST controllers and HTTP", lessons: 6 },
+            { id: "service-data-flow", title: "Service and data flow", lessons: 6 }
         ]
     },
     {
@@ -40,6 +54,13 @@ const courseCatalog = [
             "Tables and relational data",
             "SELECT and filtering",
             "Joins and aggregation"
+        ],
+
+        // Day 7.1: GS-007 model the course as ordered sections with lesson counts
+        sections: [
+            { id: "relational-basics", title: "Relational data basics", lessons: 3 },
+            { id: "queries-filtering", title: "Queries and filtering", lessons: 3 },
+            { id: "joins-aggregation", title: "Joins and aggregation", lessons: 4 }
         ]
     }
 ];

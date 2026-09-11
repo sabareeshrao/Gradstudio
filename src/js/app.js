@@ -16,6 +16,9 @@ const selectedCourseDescription = document.querySelector("#selected-course-descr
 const selectedCourseLessons = document.querySelector("#selected-course-lessons");
 const selectedCourseTopics = document.querySelector("#selected-course-topics");
 
+// Day 7.3: GS-007 wire the selected-course section outline element
+const selectedCourseSections = document.querySelector("#selected-course-sections");
+
 // Day 2.8: GS-002 prove JavaScript loaded successfully
 appStatus.textContent = "GradStudio application loaded successfully.";
 
@@ -75,6 +78,19 @@ function renderCourseCatalog() {
 
 renderCourseCatalog();
 
+// Day 7.4: GS-007 convert one course section into ordered outline markup
+function createCourseSection(section, index) {
+    return `
+        <li class="course-section" data-section-id="${section.id}">
+            <div>
+                <span class="course-section-number">Section ${index + 1}</span>
+                <strong>${section.title}</strong>
+            </div>
+            <span class="course-section-lessons">${section.lessons} lessons</span>
+        </li>
+    `;
+}
+
 // Day 5.5: GS-005 render one selected course into the reusable details panel
 function renderCourseDetails(course) {
     selectedCourseLevel.textContent = course.level;
@@ -84,6 +100,11 @@ function renderCourseDetails(course) {
 
     selectedCourseTopics.innerHTML = course.topics
         .map((topic) => `<li>${topic}</li>`)
+        .join("");
+
+    // Day 7.5: GS-007 render ordered sections for the selected course
+    selectedCourseSections.innerHTML = course.sections
+        .map(createCourseSection)
         .join("");
 
     courseDetails.hidden = false;
