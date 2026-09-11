@@ -1,3 +1,4 @@
+<!-- Day 1: GS-001 project foundation -->
 # GradStudio
 
 GradStudio is being rebuilt from scratch as a hands-on engineering project.
