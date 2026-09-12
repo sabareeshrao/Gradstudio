@@ -1,0 +1,60 @@
+/* Day 14.9: GS-014 present lesson completion controls and completed outline state */
+.lesson-progress-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.course-progress-summary {
+    margin: 0;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.lesson-complete-toggle {
+    padding: 10px 14px;
+    border: 1px solid #111827;
+    border-radius: 6px;
+    background: #111827;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lesson-complete-toggle[aria-pressed="true"] {
+    background: #ffffff;
+    color: #111827;
+}
+
+.lesson-complete-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.course-lesson-item.is-complete .course-lesson-select {
+    border-left: 3px solid #166534;
+}
+
+.course-lesson-item.is-complete .course-lesson-title::after {
+    content: " · Completed";
+    color: #166534;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 700px) {
+    .lesson-progress-control {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .lesson-complete-toggle {
+        width: 100%;
+    }
+}
