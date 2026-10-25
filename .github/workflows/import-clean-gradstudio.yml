@@ -77,6 +77,12 @@ jobs:
               raise RuntimeError('Insecure TLS bypass remains')
           sync.write_text(contents, encoding='utf-8')
 
+          # Repair the missing IIFE closing delimiter in legacy protection.js.
+          protection = target/'static/protection.js'
+          protection_text = protection.read_text(encoding='utf-8')
+          if not protection_text.rstrip().endswith('})();'):
+              protection.write_text(protection_text.rstrip() + '\n    })();\n', encoding='utf-8')
+
           pkg_path = target/'worker/package.json'
           pkg = json.loads(pkg_path.read_text(encoding='utf-8'))
           pkg['scripts']['test'] = 'node --check src/index.js'
