@@ -1,63 +1,39 @@
-<!-- Day 1.1: GS-001 establish the GradStudio project identity -->
 # GradStudio
 
-GradStudio is being rebuilt from scratch as a hands-on engineering project.
+GradStudio is a learning platform with a static web frontend, an admin interface and a Cloudflare Workers API.
 
-This repository intentionally starts small and evolves through meaningful, working commits. The existing GradStudio implementation is used only as a product and architecture reference. Production code is not copied blindly into this repository.
+This is a cleaned source snapshot migrated from https://github.com/sabs-27/gradstudio_upgrade on 2026-10-25.
 
-<!-- Day 1.2: GS-001 define the engineering goal and evolution model -->
-## Engineering goal
+## Layout
 
-Build GradStudio the way a real engineering team could logically arrive at it:
+- static/ - website pages, JavaScript, CSS, images
+- admin-preview/ - administration interface preview
+- worker/src/ - Cloudflare Worker API and middleware
+- worker/migrations/ - database migrations
+- worker/schema.sql - database schema
+- scripts/ - upload and synchronization utilities
+- deploy-dev.sh, deploy-dev.ps1, deploy-prod.sh - deployment helpers
 
-1. identify a concrete product or engineering problem
-2. discuss possible approaches
-3. choose the smallest sensible implementation
-4. implement it
-5. run and verify it
-6. commit the working change
-7. introduce more architecture only when the product needs it
+## Development
 
-<!-- Day 1.3: GS-001 define the daily development workflow -->
-## Daily development rule
+Install Node.js LTS and Cloudflare Wrangler. In worker/, run npm ci and npm test.
+Review worker/wrangler.toml and configure secrets through Cloudflare before deploying.
 
-Each detailed development day represents one primary engineering problem and one meaningful Git commit.
+## Safety warning
 
-A day should include:
+The imported Wrangler configuration still references the original live domain,
+D1 database, KV namespaces and R2 bucket. Its development and production
+environments reference the SAME persistent resources. Isolate development
+resources and review settings before deploying or modifying live data.
+Do not commit JWT signing secrets or other credentials.
 
-- engineering group discussion
-- decision and reasoning
-- exact files involved
-- terminal commands
-- implementation
-- local verification
-- Git diff review
-- commit and push
+## Cleanup and traceability
 
-<!-- Day 1.4: GS-001 define the build principles -->
-## Build principles
+Temporary logs, data dumps, generated deployment previews, experimental
+standalone HTML notes and test results were excluded. Encoded image assets
+were repaired and an unsafe TLS certificate-verification bypass was removed.
 
-- Do not copy the finished GradStudio application wholesale.
-- Prefer a simple working solution before introducing infrastructure.
-- Keep every commit understandable and runnable whenever practical.
-- Introduce frontend, API, database, storage, authentication, analytics, security, and deployment capabilities when their requirements naturally appear.
-- Ignore notes, generated previews, temporary logs, experiments, and other reference-repository artifacts that are not part of the actual product.
-- Record technical debt instead of prematurely solving future problems.
-
-<!-- Day 1.5: GS-001 establish the commit convention -->
-## Commit convention
-
-Development commits use the GradStudio learning ticket prefix:
-
-```text
-GS-001 Initialize GradStudio project foundation
-GS-002 ...
-GS-003 ...
-```
-
-<!-- Day 1.6: GS-001 record the initial repository state -->
-## Current state
-
-**GS-001** establishes the project foundation and engineering workflow.
-
-No application feature code has been added yet.
+Original: https://github.com/sabs-27/gradstudio_upgrade
+Previous destination scaffold: https://github.com/sabareeshrao/Gradstudio/tree/backup/pre-migration-2026-10-25
+Original history remains in the original repo. This is a cleaned code migration,
+not a replay of historical commits.
