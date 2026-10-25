@@ -1,0 +1,161 @@
+name: One-time clean GradStudio migration
+
+on:
+  push:
+    branches:
+      - migration/gradstudio-cleanup-2026-10-25
+    paths:
+      - .github/workflows/import-clean-gradstudio.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout destination
+        uses: actions/checkout@v4
+
+      - name: Import deployable code from original
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --single-branch --branch main https://github.com/sabs-27/gradstudio_upgrade.git /tmp/gradstudio-original
+          python3 - <<'PY'
+          import base64, json, re, shutil, textwrap
+          from pathlib import Path
+          source = Path('/tmp/gradstudio-original')
+          target = Path.cwd()
+          # Original destination scaffold is saved in the backup branch.
+          shutil.rmtree(target/'src', ignore_errors=True)
+          folders = ['static', 'admin-preview', 'worker/src', 'worker/migrations', 'worker/dev-static', 'scripts']
+          files = ['.gitignore', 'deploy-dev.ps1', 'deploy-dev.sh', 'deploy-prod.sh',
+              'worker/bun.lock', 'worker/package.json', 'worker/package-lock.json',
+              'worker/wrangler.toml', 'worker/schema.sql', 'worker/migrate.sql',
+              'worker/add-soft-delete.sql', 'worker/carousel-migration.sql',
+              'worker/restore-missing-courses.sql', 'worker/sample-data.sql']
+          for rel in folders:
+              assert (source/rel).is_dir(), f'Missing folder: {rel}'
+              shutil.copytree(source/rel, target/rel, dirs_exist_ok=True)
+          for rel in files:
+              assert (source/rel).is_file(), f'Missing file: {rel}'
+              (target/rel).parent.mkdir(parents=True, exist_ok=True)
+              shutil.copy2(source/rel, target/rel)
+
+          # Some original .png/.ico files were mistakenly committed as base64 text.
+          def correct_magic(raw, ext):
+              return raw.startswith(b'\x89PNG\r\n\x1a\n') if ext == '.png' else raw.startswith(b'\x00\x00\x01\x00')
+          repaired = 0
+          for path in (target/'static').rglob('*'):
+              ext = path.suffix.lower()
+              if ext not in {'.png', '.ico'}:
+                  continue
+              raw = path.read_bytes()
+              if correct_magic(raw, ext):
+                  continue
+              data = raw.strip()
+              for _ in range(5):
+                  if not re.fullmatch(rb'[A-Za-z0-9+/\s=]+', data):
+                      break
+                  try:
+                      data = base64.b64decode(data, validate=False)
+                  except Exception:
+                      break
+                  if correct_magic(data, ext):
+                      path.write_bytes(data)
+                      repaired += 1
+                      break
+              if not correct_magic(path.read_bytes(), ext):
+                  raise RuntimeError(f'Invalid migrated image: {path}')
+
+          # Remove a genuine TLS bypass in the legacy sync script.
+          sync = target/'scripts/run_sync.js'
+          contents = sync.read_text(encoding='utf-8')
+          contents = re.sub(r"^process\.env\.NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['\"]0['\"];\s*\n", '', contents, flags=re.M)
+          if 'NODE_TLS_REJECT_UNAUTHORIZED' in contents:
+              raise RuntimeError('Insecure TLS bypass remains')
+          sync.write_text(contents, encoding='utf-8')
+
+          pkg_path = target/'worker/package.json'
+          pkg = json.loads(pkg_path.read_text(encoding='utf-8'))
+          pkg['scripts']['test'] = 'node --check src/index.js'
+          pkg_path.write_text(json.dumps(pkg, indent=2) + '\n', encoding='utf-8')
+
+          forbidden = {'.env', '.env.local', '.env.production', '.dev.vars', 'id_rsa', 'id_ed25519'}
+          for f in target.rglob('*'):
+              if not f.is_file() or '.git' in f.parts:
+                  continue
+              if f.name in forbidden or f.suffix.lower() in {'.pem', '.key', '.log'}:
+                  raise RuntimeError('Forbidden local artifact: ' + str(f))
+
+          readme = """
+          # GradStudio
+
+          GradStudio is a learning platform with a static web frontend, an admin interface and a Cloudflare Workers API.
+
+          This is a cleaned source snapshot migrated from https://github.com/sabs-27/gradstudio_upgrade on 2026-10-25.
+
+          ## Layout
+
+          - static/ - website pages, JavaScript, CSS, images
+          - admin-preview/ - administration interface preview
+          - worker/src/ - Cloudflare Worker API and middleware
+          - worker/migrations/ - database migrations
+          - worker/schema.sql - database schema
+          - scripts/ - upload and synchronization utilities
+          - deploy-dev.sh, deploy-dev.ps1, deploy-prod.sh - deployment helpers
+
+          ## Development
+
+          Install Node.js LTS and Cloudflare Wrangler. In worker/, run npm ci and npm test.
+          Review worker/wrangler.toml and configure secrets through Cloudflare before deploying.
+
+          ## Safety warning
+
+          The imported Wrangler configuration still references the original live domain,
+          D1 database, KV namespaces and R2 bucket. Its development and production
+          environments reference the SAME persistent resources. Isolate development
+          resources and review settings before deploying or modifying live data.
+          Do not commit JWT signing secrets or other credentials.
+
+          ## Cleanup and traceability
+
+          Temporary logs, data dumps, generated deployment previews, experimental
+          standalone HTML notes and test results were excluded. Encoded image assets
+          were repaired and an unsafe TLS certificate-verification bypass was removed.
+
+          Original: https://github.com/sabs-27/gradstudio_upgrade
+          Previous destination scaffold: https://github.com/sabareeshrao/Gradstudio/tree/backup/pre-migration-2026-10-25
+          Original history remains in the original repo. This is a cleaned code migration,
+          not a replay of historical commits.
+          """
+          (target/'README.md').write_text(textwrap.dedent(readme).lstrip(), encoding='utf-8')
+          print('Clean imported files:', sum(p.is_file() for p in target.rglob('*') if '.git' not in p.parts))
+          print('Repaired image files:', repaired)
+          PY
+
+      - name: Validate project source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find worker/src scripts static -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          cd worker
+          npm ci --ignore-scripts
+          npm test
+          cd ..
+          test -s static/index.html
+          test -s worker/src/index.js
+          test -s worker/wrangler.toml
+
+      - name: Publish cleaned migration to staging branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/import-clean-gradstudio.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --stat
+          git diff --cached --quiet || git commit -m "Migrate cleaned GradStudio application source"
+          git push origin HEAD:migration/gradstudio-cleanup-2026-10-25
