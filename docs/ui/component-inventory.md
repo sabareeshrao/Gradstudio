@@ -57,7 +57,7 @@ The `component_id` values below are the intended durable names for prompt-driven
 | `course.detail` | Course overview and section list | `#courseDetail`, dynamic `[data-detail-section]`, `[data-lesson-index]` | canonical JS detail renderer | Course/category/section records | Structural |
 | `course.player` | Lesson navigation and simulation frame | `#coursePlayer`, dynamic `.lesson-frame`, `[data-player-*]` | canonical JS player renderer plus `static/modules/content-catalog-v1.mjs` | Stable-ID Git simulation records use immutable content-origin URLs and an opaque sandbox; legacy production behavior is unchanged | High risk at content security boundary |
 | `home.layout-blocks` | Homepage featured/compact carousel blocks | `#demoCarouselBlocks`; generated `#featuredDemoRail`, `#compactDemoRail`, `#carouselTextBlock`, `#compactCarouselTextBlock` | canonical JS layout renderers | Catalog/layout configuration | Structural |
-| `auth.page` | Sign-up/sign-in/reset-style client UI | `#authPage`, dynamic `[data-auth-form]`, `[data-auth-tab]`, `[data-google-auth]` | canonical JS | Authentication API and OAuth | High risk |
+| `auth.page` | Sign-up/sign-in/reset-style client UI | `#authPage`, dynamic `[data-auth-form]`, `[data-auth-tab]`, `[data-google-auth]` (legacy), `[data-google-id-button]` (isolated staging) | canonical JS | Authentication API and OAuth | High risk |
 | `info.page` | About/contact/legal content routed inside shell | `#infoPage`, `[data-info-page]` | canonical JS | Client routes | Routine/structural |
 | `site.footer` | Footer brand/navigation/legal line | `.site-footer`, `.footer-links`, `[data-info-page]` | `static/index.html`, canonical CSS/JS | Home/info routes | Routine |
 
