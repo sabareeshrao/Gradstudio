@@ -34,6 +34,14 @@ test('simulation upload and replacement handlers block failed scans', () => {
   }
 });
 
+test('new content catalog route has no legacy fallback', () => {
+  const index = fs.readFileSync(path.join(root, 'worker/src/index.js'), 'utf8');
+  const adapter = fs.readFileSync(path.join(root, 'worker/src/content/catalogAdapter.js'), 'utf8');
+  assert.match(index, /\/api\/content\/v1\/catalog/);
+  assert.doesNotMatch(adapter, /env\.(?:DB|R2|KV)\b/);
+  assert.doesNotMatch(adapter, /api\/courses|legacy/i);
+});
+
 test('pull-request validation has read-only permissions and no secret references', () => {
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/security-ci.yml'), 'utf8');
   assert.match(workflow, /permissions:\s*\n\s*contents:\s*read/);

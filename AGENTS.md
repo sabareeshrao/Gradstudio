@@ -29,12 +29,16 @@ The private `sabareeshrao/Gradstudio-2.0-Admin` repository owns requirements, im
 - `static/admin-edit.html` and `static/Admin.html` — legacy/specialized admin surfaces; verify callers before editing.
 - `static/learn-next.*` and `static/gradstudioapplelike.html` — prototypes/alternatives, not canonical production UI unless the tracker explicitly promotes them.
 - `worker/src/index.js` — application Worker routes and orchestration.
+- `worker/src/content/catalogAdapter.js` — fail-closed adapter for the independent GradStudio 2.0 catalog; it must never fall back to D1/R2 educational content.
+- `static/modules/content-catalog-v1.mjs` — client mapping for stable IDs and immutable content-origin simulation URLs; it is preparatory until staging activation is approved.
 - `worker/src/middleware/` — authentication, authorization, rate-limit, CSRF, validation, and scanner helpers.
 - `worker/migrations/` and `worker/schema.sql` — persistent-data definitions; never run against production without explicit authorization.
 - `worker/wrangler.toml` — Cloudflare bindings and environments; it currently references shared live resources and is unsafe for casual development deployment.
 - `scripts/` and root deployment scripts — operational utilities; treat any live endpoint, D1, KV, or R2 mutation as high risk.
 
 The complete UI ownership and selector registry is maintained in `docs/ui/component-inventory.md`. Update that inventory in the same commit whenever a component, stable ID, canonical path, route, or ownership boundary changes.
+
+The new content boundary and staged activation rules are documented in `docs/content-catalog-integration.md`. Preserve the explicit empty, unconfigured, unavailable, incompatible, and rolled-back states. Never hide these states by reading the legacy educational catalog.
 
 ## Change rules
 

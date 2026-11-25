@@ -26,6 +26,10 @@ id = "REPLACE_WITH_DEV_RATE_LIMITS_KV_ID"
 binding = "R2"
 bucket_name = "gradstudio-app-assets-dev"
 
+[[services]]
+binding = "CONTENT"
+service = "gradstudio-content-dev"
+
 [vars]
 ENVIRONMENT = "dev"
 ENVIRONMENT_ISOLATED = "true"

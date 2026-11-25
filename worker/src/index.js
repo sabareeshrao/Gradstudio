@@ -20,6 +20,7 @@ import { withErrorHandling } from './middleware/errorWrapper.js';
 // Duplicates removed
 import { checkBotProtection, checkHoneypot } from './middleware/botProtection.js';
 import { logSecurityEvent } from './utils/securityLogger.js';
+import { handleContentCatalogRequest } from './content/catalogAdapter.js';
 
 import {
   handleGetMetricsOverview,
@@ -150,6 +151,12 @@ const applicationWorker = {
         }
 
         // ===== ROUTE HANDLING =====
+
+        // New GradStudio 2.0 catalog boundary. This never falls back to the
+        // legacy D1/R2 catalog when the independent content service is absent.
+        if (path === '/api/content/v1/catalog' && request.method === 'GET') {
+          return addSecurityHeaders(await handleContentCatalogRequest(env, corsHeaders));
+        }
 
         // 0. List ALL courses (for dynamic sidebar)
         // GET /api/courses
