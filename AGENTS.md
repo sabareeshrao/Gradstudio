@@ -77,6 +77,19 @@ Until dedicated UI automation lands, also syntax-check every modified JavaScript
 - broken links/assets and console errors;
 - visual-regression snapshots for registered components.
 
+The Phase 3 UI foundation adds these repository-root commands:
+
+```powershell
+npm ci
+npm run ui:validate
+npm run ui:test:browser
+npm run ui:build:inventory
+```
+
+`static/index.html` is the only hand-edited public shell. `static/gradstudio-learn-demo.html` and `static/ui-config/generated/ui-config.runtime.js` are deterministic generated files; update them with `npm run ui:compile`. Routine prompt-driven settings live under `static/ui-config/`, while new components and complex behavior use the documented code escape hatch in `docs/ui/configuration-contract.md`.
+
+Before a future release decision, classify the changed paths with `npm run ui:classify -- --base <base-revision> --head <head-revision>`. The result is evidence only and never production authorization. See `docs/ui/change-classification.md` for fail-closed path rules and the protected-policy gates required before routine auto-deployment can be enabled.
+
 Do not weaken a failing validation to make a change pass. Record missing coverage in the private tracker.
 
 ## Deployment model

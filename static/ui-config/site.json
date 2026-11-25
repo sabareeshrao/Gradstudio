@@ -1,0 +1,16 @@
+{
+  "$schema": "./schemas/site.schema.json",
+  "schemaVersion": 1,
+  "brand": {
+    "name": "GradStudio",
+    "homeHref": "/",
+    "logoSrc": "gradstudio-header-logo.png",
+    "logoAlt": ""
+  },
+  "featureFlags": {
+    "courseMenu": true,
+    "heroFeature": true,
+    "pinnedLearning": true,
+    "homepageLayoutBlocks": true
+  }
+}

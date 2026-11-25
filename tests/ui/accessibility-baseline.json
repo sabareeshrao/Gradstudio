@@ -1,0 +1,14 @@
+{
+  "recordedOn": "2026-11-24",
+  "scope": "canonical home with synthetic fallback catalog",
+  "reason": "Existing visual baseline issues discovered when Phase 3 introduced automated axe checks. They are tracked explicitly so new serious/critical violations fail without silently changing the founder-approved baseline design.",
+  "allowedSeriousTargets": [
+    "color-contrast::.primary-action",
+    "color-contrast::.secondary-action",
+    "color-contrast::button[data-topic=\"All\"] > span",
+    "color-contrast::button[data-topic=\"All\"] > small",
+    "color-contrast::article[data-component-id=\"catalog.course-card\"] > .card-body > div:nth-child(1) > .course-meta > span:nth-child(1)",
+    "color-contrast::article[data-component-id=\"catalog.course-card\"] > .card-body > div:nth-child(1) > .course-meta > span:nth-child(2)",
+    "nested-interactive::article[data-component-id=\"catalog.course-card\"]"
+  ]
+}

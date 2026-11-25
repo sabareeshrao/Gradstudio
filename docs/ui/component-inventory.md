@@ -1,6 +1,6 @@
 # GradStudio UI component inventory
 
-Status: baseline inventory, 2026-11-24  
+Status: Phase 3 machine-registry synchronized inventory, 2026-11-24
 Repository: `sabareeshrao/Gradstudio`  
 Canonical public shell: `static/index.html`
 
@@ -14,11 +14,23 @@ This registry tells future ChatGPT/Codex sessions where a visible feature lives 
 | Public layout, component, responsive, auth, detail, and player styles | `static/gradstudio-learn-demo.css` | Canonical |
 | Public behavior, client routing, API catalog adapter, rendering, auth UI, pins, detail, and player | `static/gradstudio-learn-demo.js` | Canonical |
 | Header logo | `static/gradstudio-header-logo.png` | Active asset |
-| Preview shell | `static/gradstudio-learn-demo.html` | Near-duplicate preview; not canonical |
+| Preview shell | `static/gradstudio-learn-demo.html` | Generated local compatibility preview; not hand-edited or canonical |
 | Legacy client catalog/fallback data | `static/gradstudio-learn-data.js` | Legacy; do not migrate to 2.0 |
 | Login page | `static/login.html` | Active separate surface; verify routing before consolidation |
 
-`static/index.html` and `static/gradstudio-learn-demo.html` currently differ in the brand-link target. Do not edit both blindly; first confirm whether the preview is still consumed. The canonical production change belongs in `static/index.html`.
+`static/gradstudio-learn-demo.html` is generated from `static/index.html`; the preview brand-link target is its only intentional semantic difference. Run `npm run ui:compile` after canonical shell/config changes. Direct preview edits fail deterministic validation.
+
+## Machine-readable registry and configuration
+
+- `static/ui-config/registry.json` is the validated machine-readable counterpart to this inventory.
+- `static/ui-config/{site,navigation,home,footer,theme}.json` owns bounded routine settings.
+- `static/ui-config/schemas/` rejects unsupported or executable configuration.
+- `static/ui-config/generated/ui-config.runtime.js` and the preview shell are deterministic generated outputs.
+- `static/ui-config/apply-config.js` applies validated values through safe DOM/CSS APIs before the canonical application script starts.
+- `docs/ui/configuration-contract.md` defines lifecycle, assets and the code escape hatch.
+- `docs/ui/prompt-operation-playbook.md` maps founder prompts to components, files, risk and tests.
+- `docs/ui/change-classification.md` defines fail-closed routine, structural and high-risk path classification.
+- `npm run ui:build:inventory` packages this inventory, the machine registry, agent instructions and policy documents with hashes, counts, revision and a content digest for CI review.
 
 ## Stable public component registry
 
@@ -98,8 +110,8 @@ These IDs document the present implementation for targeting and regression tests
 
 | Exact path(s) | Classification | Rule |
 | --- | --- | --- |
-| `static/learn-next.html`, `static/learn-next.css`, `static/learn-next.js` | Alternate/prototype UI | Do not treat as canonical without an approved promotion task. |
-| `static/gradstudioapplelike.html` | Alternate/prototype UI | Preserve as reference unless explicitly retired. |
+| `static/learn-next.html`, `static/learn-next.css`, `static/learn-next.js` | `prototype.learn-next` — retained design reference | Not imported by the canonical shell; promotion requires an approved structural change. |
+| `static/gradstudioapplelike.html` | `prototype.applelike` — archived prototype | Retained for historical design reference and excluded from the canonical runtime. |
 | `static/about.html`, `static/contact.html`, and legal/info HTML redirects | Route shims/redirect surfaces | Verify incoming links before editing or removing. |
 
 ## Backend and delivery ownership
@@ -114,6 +126,7 @@ These IDs document the present implementation for targeting and regression tests
 ## Inventory maintenance rules
 
 - Update this file in the same commit as any add, delete, move, rename, route change, canonical-path change, or component-ID change.
+- `npm run ui:check` enforces that every machine-registry ID appears here and that every public/dynamic registry entry has a deterministic source hook.
 - Give every new independently administered UI region a stable `component_id`.
 - Record whether the component is configuration-controlled or code-controlled once the UI registry is implemented.
 - Record all API, auth, content, and operational-data dependencies.

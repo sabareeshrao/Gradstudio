@@ -1,0 +1,85 @@
+name: Application UI validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ui-ci.yml"
+      - "docs/ui/**"
+      - "scripts/ui/**"
+      - "static/**"
+      - "tests/ui/**"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ui-ci.yml"
+      - "docs/ui/**"
+      - "scripts/ui/**"
+      - "static/**"
+      - "tests/ui/**"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: application-ui-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate registry, schemas, generated files, links, and unit tests
+        run: npm run ui:validate
+      - name: Classify changed paths and build component administration inventory
+        env:
+          UI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          UI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          npm run ui:classify -- --base "$UI_BASE_SHA" --head "$UI_HEAD_SHA" --output dist/ui-change-classification.json
+          npm run ui:build:inventory -- --revision "$UI_HEAD_SHA"
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chrome
+      - name: Run desktop and mobile browser tests
+        run: npm run ui:test:browser
+      - name: Build revision-labeled UI preview artifact
+        run: npm run ui:build:preview
+      - name: Upload UI preview artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ui-preview-${{ github.sha }}
+          path: dist/ui-preview/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload prompt-administration inventory and classification
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ui-administration-${{ github.sha }}
+          path: |
+            dist/ui-component-inventory/
+            dist/ui-change-classification.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ui-browser-diagnostics-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

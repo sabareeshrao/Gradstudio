@@ -1,3 +1,19 @@
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url("fonts/inter-latin-400-900.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 700 800;
+    font-display: swap;
+    src: url("fonts/jetbrains-mono-latin-700-800.woff2") format("woff2");
+}
+
 :root {
     --ui-font: "Inter", "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
     --display-font: "Inter", "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -13,7 +29,26 @@
     --success: #e85d04;
     --warning: #b45309;
     --shadow: 0 12px 28px rgba(29, 41, 57, 0.08);
+    --shadow-card: 0 1px 2px rgba(29, 41, 57, 0.04);
     --radius: 8px;
+    --radius-control: 8px;
+    --radius-pill: 999px;
+    --base-font-size: 16px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+    --space-3xl: 48px;
+    --motion-fast: 150ms;
+    --motion-normal: 260ms;
+    --motion-easing: cubic-bezier(.2, .8, .2, 1);
+    --catalog-sidebar-width: 278px;
+    --catalog-gap: 34px;
+    --course-card-min-width: 240px;
+    --course-grid-gap: 24px;
+    --header-min-height: 66px;
     --carousel-copy-font: var(--display-font);
     --carousel-heading-font: var(--display-font);
     --card-title-font: var(--display-font);
@@ -40,7 +75,7 @@ body {
         var(--page-bg);
     color: var(--ink);
     font-family: var(--ui-font);
-    font-size: 16px;
+    font-size: var(--base-font-size);
     letter-spacing: 0;
 }
 
@@ -83,6 +118,11 @@ a {
     overflow-x: hidden;
 }
 
+html[data-feature-pinned-learning="false"] [data-open-pinned],
+html[data-feature-pinned-learning="false"] [data-component-id="account.pinned-view"] {
+    display: none !important;
+}
+
 .topbar {
     position: sticky;
     top: 0;
@@ -90,7 +130,7 @@ a {
     display: flex;
     align-items: center;
     gap: clamp(18px, 3vw, 32px);
-    min-height: 66px;
+    min-height: var(--header-min-height);
     padding: 0 clamp(20px, 4vw, 56px);
     background: rgba(255, 255, 255, 0.94);
     border-bottom: 1px solid rgba(224, 229, 238, 0.82);
@@ -917,8 +957,8 @@ a {
 
 .catalog-shell {
     display: grid;
-    grid-template-columns: 278px minmax(0, 1fr);
-    gap: 34px;
+    grid-template-columns: var(--catalog-sidebar-width) minmax(0, 1fr);
+    gap: var(--catalog-gap);
     width: min(1480px, calc(100% - 48px));
     margin: 50px auto 0;
     padding: 28px 0 44px;
@@ -2665,6 +2705,17 @@ body.is-about-page .info-page-shell {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 @media (max-width: 920px) {
     .about-cinematic-grid {
         grid-template-columns: 1fr;
@@ -3556,9 +3607,9 @@ body.is-about-page .info-page-shell {
 
 .course-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(240px, 1fr));
+    grid-template-columns: repeat(3, minmax(var(--course-card-min-width), 1fr));
     align-items: start;
-    gap: 24px;
+    gap: var(--course-grid-gap);
     padding-top: 24px;
 }
 
@@ -3571,8 +3622,8 @@ body.is-about-page .info-page-shell {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--panel-bg);
-    box-shadow: 0 1px 2px rgba(29, 41, 57, 0.04);
-    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    box-shadow: var(--shadow-card);
+    transition: transform var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
     contain: content;
     cursor: pointer;
 }

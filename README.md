@@ -26,6 +26,8 @@ role in the approved three-repository GradStudio 2.0 architecture, validation
 expectations and production safeguards.
 
 - UI component ownership and exact selectors: [docs/ui/component-inventory.md](docs/ui/component-inventory.md)
+- Prompt-driven UI configuration contract: [docs/ui/configuration-contract.md](docs/ui/configuration-contract.md)
+- Founder prompt-operation playbook: [docs/ui/prompt-operation-playbook.md](docs/ui/prompt-operation-playbook.md)
 - Public security-readiness notice: [docs/security/README.md](docs/security/README.md)
 - Detailed source security baseline: private `sabareeshrao/Gradstudio-2.0-Admin/docs/security/2026-11-24-baseline-audit.md`
 - New public educational content: https://github.com/sabareeshrao/Gradstudio-2.0
