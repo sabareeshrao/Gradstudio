@@ -4,232 +4,1049 @@
   "canonicalShell": "static/index.html",
   "components": {
     "site.shell": {
-      "componentId": "site.shell", "label": "Public application shell", "scope": "public", "status": "canonical",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='site.shell']"], "routeDependencies": ["all public routes"], "dataDependencies": [], "riskClass": "structural", "controlMode": "code",
-      "tests": ["ui registry integrity", "desktop/mobile shell smoke"]
+      "componentId": "site.shell",
+      "label": "Public application shell",
+      "scope": "public",
+      "status": "canonical",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='site.shell']"
+      ],
+      "routeDependencies": [
+        "all public routes"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "ui registry integrity",
+        "desktop/mobile shell smoke"
+      ]
     },
     "site.header": {
-      "componentId": "site.header", "label": "Global header", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='site.header']"], "routeDependencies": ["all public routes"], "dataDependencies": ["authentication state"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/navigation.json", "static/ui-config/site.json", "static/ui-config/theme.json"], "tests": ["primary navigation browser smoke", "responsive header snapshot"]
+      "componentId": "site.header",
+      "label": "Global header",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='site.header']"
+      ],
+      "routeDependencies": [
+        "all public routes"
+      ],
+      "dataDependencies": [
+        "authentication state"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/navigation.json",
+        "static/ui-config/site.json",
+        "static/ui-config/theme.json"
+      ],
+      "tests": [
+        "primary navigation browser smoke",
+        "responsive header snapshot"
+      ]
     },
     "site.brand": {
-      "componentId": "site.brand", "label": "Header brand", "scope": "public", "status": "active",
-      "source": ["static/index.html", "static/gradstudio-header-logo.png"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/ui-config/apply-config.js",
-      "selectors": ["[data-component-id='site.brand']"], "routeDependencies": ["home"], "dataDependencies": [], "riskClass": "routine", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/site.json"], "tests": ["brand asset/link integrity"]
+      "componentId": "site.brand",
+      "label": "Header brand",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html",
+        "static/gradstudio-header-logo.png"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/ui-config/apply-config.js",
+      "selectors": [
+        "[data-component-id='site.brand']"
+      ],
+      "routeDependencies": [
+        "home"
+      ],
+      "dataDependencies": [],
+      "riskClass": "routine",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/site.json"
+      ],
+      "tests": [
+        "brand asset/link integrity"
+      ]
     },
     "site.primary-nav": {
-      "componentId": "site.primary-nav", "label": "Primary navigation", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='site.primary-nav']"], "routeDependencies": ["home", "courses", "about", "contact"], "dataDependencies": [], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/navigation.json"], "tests": ["navigation order and required-route validation", "keyboard navigation smoke"]
+      "componentId": "site.primary-nav",
+      "label": "Primary navigation",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='site.primary-nav']"
+      ],
+      "routeDependencies": [
+        "home",
+        "courses",
+        "about",
+        "contact"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/navigation.json"
+      ],
+      "tests": [
+        "navigation order and required-route validation",
+        "keyboard navigation smoke"
+      ]
     },
     "site.auth-actions": {
-      "componentId": "site.auth-actions", "label": "Authentication and account actions", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='site.auth-actions']"], "routeDependencies": ["signup", "signin", "account"], "dataDependencies": ["authentication API", "session"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["auth entry smoke", "signed-in account smoke"]
+      "componentId": "site.auth-actions",
+      "label": "Authentication and account actions",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='site.auth-actions']"
+      ],
+      "routeDependencies": [
+        "signup",
+        "signin",
+        "account"
+      ],
+      "dataDependencies": [
+        "authentication API",
+        "session"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "auth entry smoke",
+        "signed-in account smoke"
+      ]
     },
     "site.course-menu": {
-      "componentId": "site.course-menu", "label": "Course mega menu", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='site.course-menu']"], "routeDependencies": ["courses"], "dataDependencies": ["catalog topics"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/site.json"], "tests": ["course menu feature flag", "course menu keyboard smoke"]
+      "componentId": "site.course-menu",
+      "label": "Course mega menu",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='site.course-menu']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "catalog topics"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/site.json"
+      ],
+      "tests": [
+        "course menu feature flag",
+        "course menu keyboard smoke"
+      ]
     },
     "home.hero": {
-      "componentId": "home.hero", "label": "Homepage hero", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/ui-config/apply-config.js",
-      "selectors": ["[data-component-id='home.hero']"], "routeDependencies": ["home", "courses", "signup"], "dataDependencies": [], "riskClass": "routine", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/home.json", "static/ui-config/theme.json"], "tests": ["hero configuration round-trip", "desktop/mobile hero snapshot"]
+      "componentId": "home.hero",
+      "label": "Homepage hero",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/ui-config/apply-config.js",
+      "selectors": [
+        "[data-component-id='home.hero']"
+      ],
+      "routeDependencies": [
+        "home",
+        "courses",
+        "signup"
+      ],
+      "dataDependencies": [],
+      "riskClass": "routine",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/home.json",
+        "static/ui-config/theme.json"
+      ],
+      "tests": [
+        "hero configuration round-trip",
+        "desktop/mobile hero snapshot"
+      ]
     },
     "home.hero-feature": {
-      "componentId": "home.hero-feature", "label": "Homepage featured visual", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html", "static/hero-gradstudio-20260429-152846.png"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='home.hero-feature']"], "routeDependencies": ["home"], "dataDependencies": ["hero asset"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/site.json", "static/ui-config/home.json"], "tests": ["hero asset integrity", "hero feature flag"]
+      "componentId": "home.hero-feature",
+      "label": "Homepage featured visual",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html",
+        "static/hero-gradstudio-20260429-152846.png"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='home.hero-feature']"
+      ],
+      "routeDependencies": [
+        "home"
+      ],
+      "dataDependencies": [
+        "hero asset"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/site.json",
+        "static/ui-config/home.json"
+      ],
+      "tests": [
+        "hero asset integrity",
+        "hero feature flag"
+      ]
     },
     "catalog.shell": {
-      "componentId": "catalog.shell", "label": "Course catalog shell", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.shell']"], "routeDependencies": ["courses"], "dataDependencies": ["catalog API"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/home.json", "static/ui-config/theme.json"], "tests": ["catalog route smoke", "catalog responsive snapshot"]
+      "componentId": "catalog.shell",
+      "label": "Course catalog shell",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.shell']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "catalog API"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/home.json",
+        "static/ui-config/theme.json"
+      ],
+      "tests": [
+        "catalog route smoke",
+        "catalog responsive snapshot"
+      ]
     },
     "catalog.topics": {
-      "componentId": "catalog.topics", "label": "Catalog topics", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.topics']"], "routeDependencies": ["courses"], "dataDependencies": ["catalog topics"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["topic filter smoke"]
+      "componentId": "catalog.topics",
+      "label": "Catalog topics",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.topics']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "catalog topics"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "topic filter smoke"
+      ]
     },
     "catalog.header": {
-      "componentId": "catalog.header", "label": "Catalog heading and statistics", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.header']"], "routeDependencies": ["courses"], "dataDependencies": ["filtered catalog counts"], "riskClass": "routine", "controlMode": "code",
-      "tests": ["catalog count smoke"]
+      "componentId": "catalog.header",
+      "label": "Catalog heading and statistics",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.header']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "filtered catalog counts"
+      ],
+      "riskClass": "routine",
+      "controlMode": "code",
+      "tests": [
+        "catalog count smoke"
+      ]
     },
     "catalog.search": {
-      "componentId": "catalog.search", "label": "Catalog search", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.search']"], "routeDependencies": ["courses"], "dataDependencies": ["client catalog"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["search filter browser smoke"]
+      "componentId": "catalog.search",
+      "label": "Catalog search",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.search']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "client catalog"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "search filter browser smoke"
+      ]
     },
     "catalog.pinned": {
-      "componentId": "catalog.pinned", "label": "Pinned learning entry", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.pinned']"], "routeDependencies": ["pinned"], "dataDependencies": ["account or local pin state"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/site.json"], "tests": ["pinned feature flag", "pinned route smoke"]
+      "componentId": "catalog.pinned",
+      "label": "Pinned learning entry",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.pinned']"
+      ],
+      "routeDependencies": [
+        "pinned"
+      ],
+      "dataDependencies": [
+        "account or local pin state"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/site.json"
+      ],
+      "tests": [
+        "pinned feature flag",
+        "pinned route smoke"
+      ]
     },
     "catalog.active-filter": {
-      "componentId": "catalog.active-filter", "label": "Active catalog filter", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.active-filter']"], "routeDependencies": ["courses"], "dataDependencies": ["search and topic selection"], "riskClass": "routine", "controlMode": "code",
-      "tests": ["filter label smoke"]
+      "componentId": "catalog.active-filter",
+      "label": "Active catalog filter",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.active-filter']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "search and topic selection"
+      ],
+      "riskClass": "routine",
+      "controlMode": "code",
+      "tests": [
+        "filter label smoke"
+      ]
     },
     "catalog.course-grid": {
-      "componentId": "catalog.course-grid", "label": "Catalog course grid", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.course-grid']"], "routeDependencies": ["courses", "course detail"], "dataDependencies": ["catalog courses"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/theme.json"], "tests": ["course grid browser smoke", "course card responsive snapshot"]
+      "componentId": "catalog.course-grid",
+      "label": "Catalog course grid",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.course-grid']"
+      ],
+      "routeDependencies": [
+        "courses",
+        "course detail"
+      ],
+      "dataDependencies": [
+        "catalog courses"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/theme.json"
+      ],
+      "tests": [
+        "course grid browser smoke",
+        "course card responsive snapshot"
+      ]
     },
     "catalog.pagination": {
-      "componentId": "catalog.pagination", "label": "Catalog pagination", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.pagination']"], "routeDependencies": ["courses"], "dataDependencies": ["filtered catalog"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["pagination smoke"]
+      "componentId": "catalog.pagination",
+      "label": "Catalog pagination",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.pagination']"
+      ],
+      "routeDependencies": [
+        "courses"
+      ],
+      "dataDependencies": [
+        "filtered catalog"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "pagination smoke"
+      ]
     },
     "catalog.course-card": {
-      "componentId": "catalog.course-card", "label": "Generated course card", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='catalog.course-card']"], "routeDependencies": ["course detail"], "dataDependencies": ["course stable ID", "thumbnail", "pin state"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["deterministic card hook", "course open keyboard smoke"]
+      "componentId": "catalog.course-card",
+      "label": "Generated course card",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='catalog.course-card']"
+      ],
+      "routeDependencies": [
+        "course detail"
+      ],
+      "dataDependencies": [
+        "course stable ID",
+        "thumbnail",
+        "pin state"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "deterministic card hook",
+        "course open keyboard smoke"
+      ]
     },
     "course.detail": {
-      "componentId": "course.detail", "label": "Course detail", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='course.detail']"], "routeDependencies": ["course detail", "player"], "dataDependencies": ["course, section and simulation records"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["course detail smoke", "detail section deterministic hook"]
+      "componentId": "course.detail",
+      "label": "Course detail",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.detail']"
+      ],
+      "routeDependencies": [
+        "course detail",
+        "player"
+      ],
+      "dataDependencies": [
+        "course, section and simulation records"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "course detail smoke",
+        "detail section deterministic hook"
+      ]
     },
     "course.detail-section": {
-      "componentId": "course.detail-section", "label": "Generated course detail section", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='course.detail-section']"], "routeDependencies": ["course detail"], "dataDependencies": ["section stable ID"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["detail expand/collapse keyboard smoke"]
+      "componentId": "course.detail-section",
+      "label": "Generated course detail section",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.detail-section']"
+      ],
+      "routeDependencies": [
+        "course detail"
+      ],
+      "dataDependencies": [
+        "section stable ID"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "detail expand/collapse keyboard smoke"
+      ]
     },
     "course.player": {
-      "componentId": "course.player", "label": "Course player", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='course.player']"], "routeDependencies": ["player"], "dataDependencies": ["course, section and simulation records"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["player route smoke", "simulation sandbox test"]
+      "componentId": "course.player",
+      "label": "Course player",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.player']"
+      ],
+      "routeDependencies": [
+        "player"
+      ],
+      "dataDependencies": [
+        "course, section and simulation records"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "player route smoke",
+        "simulation sandbox test"
+      ]
     },
     "course.player-section": {
-      "componentId": "course.player-section", "label": "Generated player section", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='course.player-section']"], "routeDependencies": ["player"], "dataDependencies": ["section stable ID"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["player section search and toggle smoke"]
+      "componentId": "course.player-section",
+      "label": "Generated player section",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.player-section']"
+      ],
+      "routeDependencies": [
+        "player"
+      ],
+      "dataDependencies": [
+        "section stable ID"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "player section search and toggle smoke"
+      ]
     },
     "course.simulation-frame": {
-      "componentId": "course.simulation-frame", "label": "Simulation iframe boundary", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='course.simulation-frame']"], "routeDependencies": ["player"], "dataDependencies": ["content origin", "simulation stable ID"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["sandbox and origin isolation security test"]
+      "componentId": "course.simulation-frame",
+      "label": "Simulation iframe boundary",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.simulation-frame']"
+      ],
+      "routeDependencies": [
+        "player"
+      ],
+      "dataDependencies": [
+        "content origin",
+        "simulation stable ID"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "sandbox and origin isolation security test"
+      ]
     },
     "home.layout-blocks": {
-      "componentId": "home.layout-blocks", "label": "Homepage configured layout blocks", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='home.layout-blocks']"], "routeDependencies": ["home"], "dataDependencies": ["layout/carousel API"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/home.json", "static/ui-config/site.json"], "tests": ["layout block order/visibility test"]
+      "componentId": "home.layout-blocks",
+      "label": "Homepage configured layout blocks",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='home.layout-blocks']"
+      ],
+      "routeDependencies": [
+        "home"
+      ],
+      "dataDependencies": [
+        "layout/carousel API"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/home.json",
+        "static/ui-config/site.json"
+      ],
+      "tests": [
+        "layout block order/visibility test"
+      ]
     },
     "home.carousel-block": {
-      "componentId": "home.carousel-block", "label": "Generated homepage carousel block", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='home.carousel-block']"], "routeDependencies": ["home"], "dataDependencies": ["carousel block stable ID"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["carousel controls and deterministic hook smoke"]
+      "componentId": "home.carousel-block",
+      "label": "Generated homepage carousel block",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='home.carousel-block']"
+      ],
+      "routeDependencies": [
+        "home"
+      ],
+      "dataDependencies": [
+        "carousel block stable ID"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "carousel controls and deterministic hook smoke"
+      ]
     },
     "account.menu": {
-      "componentId": "account.menu", "label": "Signed-in account menu", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='account.menu']"], "routeDependencies": ["account", "pinned"], "dataDependencies": ["authenticated user"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["account menu keyboard/focus smoke", "logout smoke"]
+      "componentId": "account.menu",
+      "label": "Signed-in account menu",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='account.menu']"
+      ],
+      "routeDependencies": [
+        "account",
+        "pinned"
+      ],
+      "dataDependencies": [
+        "authenticated user"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "account menu keyboard/focus smoke",
+        "logout smoke"
+      ]
     },
     "account.pinned-view": {
-      "componentId": "account.pinned-view", "label": "Pinned learning view", "scope": "dynamic", "status": "generated",
-      "source": ["static/gradstudio-learn-demo.js"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='account.pinned-view']"], "routeDependencies": ["pinned"], "dataDependencies": ["account or local pin state"], "riskClass": "structural", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/site.json"], "tests": ["pinned empty and populated view smoke"]
+      "componentId": "account.pinned-view",
+      "label": "Pinned learning view",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='account.pinned-view']"
+      ],
+      "routeDependencies": [
+        "pinned"
+      ],
+      "dataDependencies": [
+        "account or local pin state"
+      ],
+      "riskClass": "structural",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/site.json"
+      ],
+      "tests": [
+        "pinned empty and populated view smoke"
+      ]
     },
     "auth.page": {
-      "componentId": "auth.page", "label": "In-shell authentication page", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='auth.page']"], "routeDependencies": ["signup", "signin", "password reset"], "dataDependencies": ["authentication API", "Google OAuth"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["auth form smoke", "auth security regression"]
+      "componentId": "auth.page",
+      "label": "In-shell authentication page",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='auth.page']"
+      ],
+      "routeDependencies": [
+        "signup",
+        "signin",
+        "password reset"
+      ],
+      "dataDependencies": [
+        "authentication API",
+        "Google OAuth"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "auth form smoke",
+        "auth security regression"
+      ]
     },
     "auth.standalone-login": {
-      "componentId": "auth.standalone-login", "label": "Standalone login", "scope": "public", "status": "active",
-      "source": ["static/login.html"], "styleOwner": "static/login.html", "behaviorOwner": "static/login.html",
-      "selectors": ["#login-form"], "routeDependencies": ["login"], "dataDependencies": ["authentication API"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["standalone login browser smoke"]
+      "componentId": "auth.standalone-login",
+      "label": "Standalone login",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/login.html"
+      ],
+      "styleOwner": "static/login.html",
+      "behaviorOwner": "static/login.html",
+      "selectors": [
+        "#login-form"
+      ],
+      "routeDependencies": [
+        "login"
+      ],
+      "dataDependencies": [
+        "authentication API"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "standalone login browser smoke"
+      ]
     },
     "info.page": {
-      "componentId": "info.page", "label": "About, contact and legal pages", "scope": "dynamic", "status": "generated",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/gradstudio-learn-demo.js",
-      "selectors": ["[data-component-id='info.page']"], "routeDependencies": ["about", "contact", "legal", "privacy", "terms", "cookies"], "dataDependencies": [], "riskClass": "routine", "controlMode": "code",
-      "tests": ["info route and link smoke"]
+      "componentId": "info.page",
+      "label": "About, contact and legal pages",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='info.page']"
+      ],
+      "routeDependencies": [
+        "about",
+        "contact",
+        "legal",
+        "privacy",
+        "terms",
+        "cookies"
+      ],
+      "dataDependencies": [],
+      "riskClass": "routine",
+      "controlMode": "code",
+      "tests": [
+        "info route and link smoke"
+      ]
     },
     "site.footer": {
-      "componentId": "site.footer", "label": "Global footer", "scope": "public", "status": "active",
-      "source": ["static/index.html"], "styleOwner": "static/gradstudio-learn-demo.css", "behaviorOwner": "static/ui-config/apply-config.js",
-      "selectors": ["[data-component-id='site.footer']"], "routeDependencies": ["home", "info pages"], "dataDependencies": [], "riskClass": "routine", "controlMode": "configuration-and-code",
-      "configPaths": ["static/ui-config/footer.json"], "tests": ["footer configuration round-trip", "footer link smoke"]
+      "componentId": "site.footer",
+      "label": "Global footer",
+      "scope": "public",
+      "status": "active",
+      "source": [
+        "static/index.html"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/ui-config/apply-config.js",
+      "selectors": [
+        "[data-component-id='site.footer']"
+      ],
+      "routeDependencies": [
+        "home",
+        "info pages"
+      ],
+      "dataDependencies": [],
+      "riskClass": "routine",
+      "controlMode": "configuration-and-code",
+      "configPaths": [
+        "static/ui-config/footer.json"
+      ],
+      "tests": [
+        "footer configuration round-trip",
+        "footer link smoke"
+      ]
     },
     "admin.catalog-editor": {
-      "componentId": "admin.catalog-editor", "label": "Existing catalog editor", "scope": "admin", "status": "active",
-      "source": ["static/gradstudio-learn-admin.html", "static/gradstudio-learn-admin.js"], "styleOwner": "static/gradstudio-learn-admin.html", "behaviorOwner": "static/gradstudio-learn-admin.js",
-      "selectors": ["#mainArea"], "routeDependencies": ["administration"], "dataDependencies": ["legacy catalog administration API"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["server-side admin authorization regression"]
+      "componentId": "admin.catalog-editor",
+      "label": "Existing catalog editor",
+      "scope": "admin",
+      "status": "active",
+      "source": [
+        "static/gradstudio-learn-admin.html",
+        "static/gradstudio-learn-admin.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-admin.html",
+      "behaviorOwner": "static/gradstudio-learn-admin.js",
+      "selectors": [
+        "#mainArea"
+      ],
+      "routeDependencies": [
+        "administration"
+      ],
+      "dataDependencies": [
+        "legacy catalog administration API"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "server-side admin authorization regression"
+      ]
     },
     "admin.content-status": {
-      "componentId": "admin.content-status", "label": "Git-backed content release status", "scope": "admin", "status": "active",
-      "source": ["static/admin-content-status.html", "static/admin-content-status.mjs"], "styleOwner": "static/admin-content-status.html", "behaviorOwner": "static/admin-content-status.mjs",
-      "selectors": ["[data-component-id='admin.content-status']"], "routeDependencies": ["administration", "content status"], "dataDependencies": ["administrator identity", "GradStudio 2.0 catalog adapter"], "riskClass": "structural", "controlMode": "code",
-      "tests": ["read-only catalog evidence browser test", "catalog compatibility state test"]
+      "componentId": "admin.content-status",
+      "label": "Git-backed content release status",
+      "scope": "admin",
+      "status": "active",
+      "source": [
+        "static/admin-content-status.html",
+        "static/admin-content-status.mjs"
+      ],
+      "styleOwner": "static/admin-content-status.html",
+      "behaviorOwner": "static/admin-content-status.mjs",
+      "selectors": [
+        "[data-component-id='admin.content-status']"
+      ],
+      "routeDependencies": [
+        "administration",
+        "content status"
+      ],
+      "dataDependencies": [
+        "administrator identity",
+        "GradStudio 2.0 catalog adapter"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "read-only catalog evidence browser test",
+        "catalog compatibility state test"
+      ]
     },
     "admin.security": {
-      "componentId": "admin.security", "label": "Operational security administration", "scope": "admin", "status": "active",
-      "source": ["static/admin-security.html"], "styleOwner": "static/admin-security.html", "behaviorOwner": "static/admin-security.html",
-      "selectors": ["#tab-security"], "routeDependencies": ["administration"], "dataDependencies": ["security monitoring API"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["server-side admin role/origin/CSRF regression"]
+      "componentId": "admin.security",
+      "label": "Operational security administration",
+      "scope": "admin",
+      "status": "active",
+      "source": [
+        "static/admin-security.html"
+      ],
+      "styleOwner": "static/admin-security.html",
+      "behaviorOwner": "static/admin-security.html",
+      "selectors": [
+        "#tab-security"
+      ],
+      "routeDependencies": [
+        "administration"
+      ],
+      "dataDependencies": [
+        "security monitoring API"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "server-side admin role/origin/CSRF regression"
+      ]
     },
     "admin.legacy-editor": {
-      "componentId": "admin.legacy-editor", "label": "Legacy catalog editor", "scope": "admin", "status": "legacy",
-      "source": ["static/admin-edit.html"], "styleOwner": "static/admin-edit.html", "behaviorOwner": "static/admin-edit.html",
-      "selectors": ["#main-content"], "routeDependencies": ["legacy administration"], "dataDependencies": ["legacy catalog API"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["legacy caller inventory before retirement"]
+      "componentId": "admin.legacy-editor",
+      "label": "Legacy catalog editor",
+      "scope": "admin",
+      "status": "legacy",
+      "source": [
+        "static/admin-edit.html"
+      ],
+      "styleOwner": "static/admin-edit.html",
+      "behaviorOwner": "static/admin-edit.html",
+      "selectors": [
+        "#main-content"
+      ],
+      "routeDependencies": [
+        "legacy administration"
+      ],
+      "dataDependencies": [
+        "legacy catalog API"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "legacy caller inventory before retirement"
+      ]
     },
     "admin.bulk-tools": {
-      "componentId": "admin.bulk-tools", "label": "Legacy bulk tools", "scope": "admin", "status": "legacy",
-      "source": ["static/Admin.html"], "styleOwner": "static/Admin.html", "behaviorOwner": "static/Admin.html",
-      "selectors": ["#bulk-form"], "routeDependencies": ["legacy administration"], "dataDependencies": ["legacy bulk API"], "riskClass": "high-risk", "controlMode": "code",
-      "tests": ["legacy caller inventory before retirement"]
+      "componentId": "admin.bulk-tools",
+      "label": "Legacy bulk tools",
+      "scope": "admin",
+      "status": "legacy",
+      "source": [
+        "static/Admin.html"
+      ],
+      "styleOwner": "static/Admin.html",
+      "behaviorOwner": "static/Admin.html",
+      "selectors": [
+        "#bulk-form"
+      ],
+      "routeDependencies": [
+        "legacy administration"
+      ],
+      "dataDependencies": [
+        "legacy bulk API"
+      ],
+      "riskClass": "high-risk",
+      "controlMode": "code",
+      "tests": [
+        "legacy caller inventory before retirement"
+      ]
     },
     "admin.preview": {
-      "componentId": "admin.preview", "label": "Administration preview", "scope": "admin", "status": "retained-reference",
-      "source": ["admin-preview/index.html"], "styleOwner": "admin-preview/index.html", "behaviorOwner": "admin-preview/index.html",
-      "selectors": ["body"], "routeDependencies": ["local preview only"], "dataDependencies": [], "riskClass": "structural", "controlMode": "reference-only",
-      "tests": ["not included in canonical application shell"]
+      "componentId": "admin.preview",
+      "label": "Administration preview",
+      "scope": "admin",
+      "status": "retained-reference",
+      "source": [
+        "admin-preview/index.html"
+      ],
+      "styleOwner": "admin-preview/index.html",
+      "behaviorOwner": "admin-preview/index.html",
+      "selectors": [
+        "body"
+      ],
+      "routeDependencies": [
+        "local preview only"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "reference-only",
+      "tests": [
+        "not included in canonical application shell"
+      ]
     },
     "prototype.learn-next": {
-      "componentId": "prototype.learn-next", "label": "Learn-next UI prototype", "scope": "reference", "status": "retained-reference",
-      "source": ["static/learn-next.html", "static/learn-next.css", "static/learn-next.js"], "styleOwner": "static/learn-next.css", "behaviorOwner": "static/learn-next.js",
-      "selectors": ["body"], "routeDependencies": ["standalone reference"], "dataDependencies": [], "riskClass": "structural", "controlMode": "reference-only",
-      "tests": ["excluded from canonical shell and runtime bundle"]
+      "componentId": "prototype.learn-next",
+      "label": "Learn-next UI prototype",
+      "scope": "reference",
+      "status": "retained-reference",
+      "source": [
+        "static/learn-next.html",
+        "static/learn-next.css",
+        "static/learn-next.js"
+      ],
+      "styleOwner": "static/learn-next.css",
+      "behaviorOwner": "static/learn-next.js",
+      "selectors": [
+        "body"
+      ],
+      "routeDependencies": [
+        "standalone reference"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "reference-only",
+      "tests": [
+        "excluded from canonical shell and runtime bundle"
+      ]
     },
     "prototype.applelike": {
-      "componentId": "prototype.applelike", "label": "Apple-like UI prototype", "scope": "reference", "status": "archived-prototype",
-      "source": ["static/gradstudioapplelike.html"], "styleOwner": "static/gradstudioapplelike.html", "behaviorOwner": "static/gradstudioapplelike.html",
-      "selectors": ["body"], "routeDependencies": ["standalone archived prototype"], "dataDependencies": [], "riskClass": "structural", "controlMode": "reference-only",
-      "tests": ["excluded from canonical shell and runtime bundle"]
+      "componentId": "prototype.applelike",
+      "label": "Apple-like UI prototype",
+      "scope": "reference",
+      "status": "archived-prototype",
+      "source": [
+        "static/gradstudioapplelike.html"
+      ],
+      "styleOwner": "static/gradstudioapplelike.html",
+      "behaviorOwner": "static/gradstudioapplelike.html",
+      "selectors": [
+        "body"
+      ],
+      "routeDependencies": [
+        "standalone archived prototype"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "reference-only",
+      "tests": [
+        "excluded from canonical shell and runtime bundle"
+      ]
+    },
+    "course.lesson-zoom": {
+      "componentId": "course.lesson-zoom",
+      "label": "Lesson-only zoom controls",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/gradstudio-learn-demo.js",
+      "selectors": [
+        "[data-component-id='course.lesson-zoom']"
+      ],
+      "routeDependencies": [
+        "player"
+      ],
+      "dataDependencies": [],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "lesson zoom bounds, reset, iframe identity, toolbar and sidebar geometry"
+      ]
     }
   }
 }

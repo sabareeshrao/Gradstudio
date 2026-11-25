@@ -3563,6 +3563,11 @@
         return `${index + 1}. ${title || `Module ${index + 1}`}`;
     }
 
+    let lessonZoomPercent = 100;
+    const LESSON_ZOOM_MIN = 50;
+    const LESSON_ZOOM_MAX = 200;
+    const LESSON_ZOOM_STEP = 10;
+
     function renderCoursePlayer(course, lessonIndex = 0) {
         const player = document.getElementById("coursePlayer");
         if (!player) return;
@@ -3636,7 +3641,7 @@
                 </aside>
 
                 <section class="player-main" aria-label="Lesson viewer">
-                    <header class="player-toolbar">
+                    <header class="player-toolbar has-lesson-controls">
                         <a class="player-back-link" href="#course/${encodeURIComponent(course.id)}">Back to course</a>
                         <h1>${escapeHtml(selectedLesson.title)}</h1>
                         <div class="player-toolbar-actions">
@@ -3649,6 +3654,12 @@
                             <button class="player-pill" type="button" data-fullscreen>
                                 Fullscreen
                             </button>
+                        </div>
+                        <div class="player-zoom-controls" data-component-id="course.lesson-zoom" role="group" aria-label="Lesson content zoom">
+                            <button class="player-zoom-button" type="button" data-lesson-zoom="out" aria-label="Zoom out lesson">−</button>
+                            <button class="player-zoom-value" type="button" data-lesson-zoom="reset" aria-label="Reset lesson zoom to 100%" title="Reset zoom">100%</button>
+                            <button class="player-zoom-button" type="button" data-lesson-zoom="in" aria-label="Zoom in lesson">+</button>
+                            <span class="sr-only" data-lesson-zoom-status aria-live="polite"></span>
                         </div>
                     </header>
 
@@ -3726,11 +3737,36 @@
 
         const fullscreen = player.querySelector("[data-fullscreen]");
         if (fullscreen) {
-            fullscreen.addEventListener("click", () => {
-                const frameShell = player.querySelector(".player-frame-shell");
-                if (frameShell && frameShell.requestFullscreen) frameShell.requestFullscreen();
+            fullscreen.addEventListener("click", async () => {
+                const main = player.querySelector(".player-main");
+                try {
+                    if (document.fullscreenElement === main) await document.exitFullscreen();
+                    else if (main?.requestFullscreen) await main.requestFullscreen();
+                } catch { /* Fullscreen may be unavailable in the current browser. */ }
+            });
+            player.querySelector(".player-main")?.addEventListener("fullscreenchange", () => {
+                fullscreen.textContent = document.fullscreenElement === player.querySelector(".player-main") ? "Exit fullscreen" : "Fullscreen";
             });
         }
+
+        const zoomShell = player.querySelector(".player-frame-shell");
+        const zoomOut = player.querySelector("[data-lesson-zoom=out]");
+        const zoomIn = player.querySelector("[data-lesson-zoom=in]");
+        const zoomReset = player.querySelector("[data-lesson-zoom=reset]");
+        const zoomStatus = player.querySelector("[data-lesson-zoom-status]");
+        const applyLessonZoom = (value) => {
+            lessonZoomPercent = Math.min(LESSON_ZOOM_MAX, Math.max(LESSON_ZOOM_MIN, value));
+            zoomShell.style.setProperty("--lesson-content-scale", String(lessonZoomPercent / 100));
+            zoomShell.style.setProperty("--lesson-content-size", `${10000 / lessonZoomPercent}%`);
+            zoomReset.textContent = `${lessonZoomPercent}%`;
+            zoomStatus.textContent = `Lesson content zoom ${lessonZoomPercent}%`;
+            zoomOut.disabled = lessonZoomPercent === LESSON_ZOOM_MIN;
+            zoomIn.disabled = lessonZoomPercent === LESSON_ZOOM_MAX;
+        };
+        zoomOut.addEventListener("click", () => applyLessonZoom(lessonZoomPercent - LESSON_ZOOM_STEP));
+        zoomIn.addEventListener("click", () => applyLessonZoom(lessonZoomPercent + LESSON_ZOOM_STEP));
+        zoomReset.addEventListener("click", () => applyLessonZoom(100));
+        applyLessonZoom(lessonZoomPercent);
 
         bindPinnedOpenButtons(player);
         updatePinnedCounts();
