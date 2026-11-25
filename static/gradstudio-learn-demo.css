@@ -2580,29 +2580,6 @@ body.is-about-page .info-page-shell {
     line-height: 1.58;
 }
 
-.about-github-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 46px;
-    margin-top: 28px;
-    padding: 0 18px;
-    border: 1px solid #172033;
-    border-radius: 8px;
-    background: #172033;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 800;
-}
-
-.about-github-link:hover,
-.about-github-link:focus-visible {
-    border-color: #e85d24;
-    background: #e85d24;
-    color: #ffffff;
-    outline: 0;
-}
-
 .about-standard-photo {
     margin: 0;
 }
