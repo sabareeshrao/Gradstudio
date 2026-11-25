@@ -1,0 +1,105 @@
+# GradStudio UI component inventory
+
+Status: baseline inventory, 2026-11-24  
+Repository: `sabareeshrao/Gradstudio`  
+Canonical public shell: `static/index.html`
+
+This registry tells future ChatGPT/Codex sessions where a visible feature lives and which stable identifier should be used in natural-language administration. It describes the current source; it does not promote prototypes to production.
+
+## Canonical public assets
+
+| Responsibility | Exact path | Current status |
+| --- | --- | --- |
+| Public HTML shell and static mount points | `static/index.html` | Canonical |
+| Public layout, component, responsive, auth, detail, and player styles | `static/gradstudio-learn-demo.css` | Canonical |
+| Public behavior, client routing, API catalog adapter, rendering, auth UI, pins, detail, and player | `static/gradstudio-learn-demo.js` | Canonical |
+| Header logo | `static/gradstudio-header-logo.png` | Active asset |
+| Preview shell | `static/gradstudio-learn-demo.html` | Near-duplicate preview; not canonical |
+| Legacy client catalog/fallback data | `static/gradstudio-learn-data.js` | Legacy; do not migrate to 2.0 |
+| Login page | `static/login.html` | Active separate surface; verify routing before consolidation |
+
+`static/index.html` and `static/gradstudio-learn-demo.html` currently differ in the brand-link target. Do not edit both blindly; first confirm whether the preview is still consumed. The canonical production change belongs in `static/index.html`.
+
+## Stable public component registry
+
+The `component_id` values below are the intended durable names for prompt-driven administration. Current DOM selectors are evidence, not a guarantee of architectural separation. When the configuration layer is implemented, preserve these component IDs or record an explicit migration.
+
+| Component ID | Visible responsibility | HTML mount/selector | Behavior/style owner | Data or route dependency | Change risk |
+| --- | --- | --- | --- | --- | --- |
+| `site.shell` | Whole public application wrapper | `.site-shell` in `static/index.html` | canonical CSS/JS | All public routes | Structural |
+| `site.header` | Global top bar | `.topbar` | canonical CSS/JS | Auth state, responsive nav | Structural |
+| `site.brand` | Header logo and name | `.brand`, `.brand-mark`, `.brand-name` | `static/index.html`, canonical CSS | `/` | Routine unless asset dimensions change |
+| `site.primary-nav` | Home, Courses, About, Contact navigation | `.main-nav`, `[data-nav-home]`, `[data-nav-courses]`, `[data-nav-about]`, `[data-nav-contact]` | canonical JS route handlers | Home/catalog/info routes | Structural |
+| `site.auth-actions` | Sign-up/sign-in or account controls | `.top-actions`, `[data-auth-open]`, dynamically rendered account selectors | canonical JS auth rendering | Auth API/session | High risk if behavior changes |
+| `site.course-menu` | Course mega menu | `#courseMegaMenu`, `#courseMegaGroups`, `[data-course-menu-trigger]` | canonical JS topic/menu renderers | Catalog API | Structural |
+| `home.hero` | Homepage title, message, CTAs | `#home`, `#heroTitle`, `.hero-heading`, `.hero-subheading`, `.hero-actions` | canonical HTML/CSS | Home route, auth CTA | Routine for copy; structural for layout |
+| `home.hero-feature` | Featured module visual | `#heroCarouselCard` | canonical JS hero renderer | Catalog/featured item | Structural |
+| `catalog.shell` | Catalog and topic layout | `#courses`, `.catalog-shell` | canonical CSS/JS | Catalog API | Structural |
+| `catalog.topics` | Topic sidebar and count | `.topics-panel`, `#topicList`, `#topicCount` | canonical JS topic renderer | Catalog topics | Structural |
+| `catalog.header` | Catalog title and stats | `#catalogTitle`, `#courseCount`, `#topicCountStat` | canonical JS catalog renderer | Active filter/catalog | Routine for labels |
+| `catalog.search` | Course search | `#courseSearch` | canonical JS input/filter logic | Client catalog | Structural if behavior changes |
+| `catalog.pinned` | Pinned-items entry point and views | `[data-open-pinned]`, dynamic `[data-pinned-*]` selectors | canonical JS | Local/session account state | Structural |
+| `catalog.active-filter` | Current topic/filter display | `#activeFilter` | canonical JS | Search/topic selection | Routine/structural |
+| `catalog.course-grid` | Course cards | `#courseGrid`, dynamic `[data-course-card-id]` | canonical JS card renderer | Catalog API | Structural |
+| `catalog.pagination` | Catalog paging | `#pager` | canonical JS pagination | Filtered course set | Structural |
+| `course.detail` | Course overview and section list | `#courseDetail`, dynamic `[data-detail-section]`, `[data-lesson-index]` | canonical JS detail renderer | Course/category/section records | Structural |
+| `course.player` | Lesson navigation and simulation frame | `#coursePlayer`, dynamic `.lesson-frame`, `[data-player-*]` | canonical JS player renderer | Course/section/simulation records | High risk at content security boundary |
+| `home.layout-blocks` | Homepage featured/compact carousel blocks | `#demoCarouselBlocks`; generated `#featuredDemoRail`, `#compactDemoRail`, `#carouselTextBlock`, `#compactCarouselTextBlock` | canonical JS layout renderers | Catalog/layout configuration | Structural |
+| `auth.page` | Sign-up/sign-in/reset-style client UI | `#authPage`, dynamic `[data-auth-form]`, `[data-auth-tab]`, `[data-google-auth]` | canonical JS | Authentication API and OAuth | High risk |
+| `info.page` | About/contact/legal content routed inside shell | `#infoPage`, `[data-info-page]` | canonical JS | Client routes | Routine/structural |
+| `site.footer` | Footer brand/navigation/legal line | `.site-footer`, `.footer-links`, `[data-info-page]` | `static/index.html`, canonical CSS/JS | Home/info routes | Routine |
+
+## Dynamic components without static IDs
+
+These are generated by `static/gradstudio-learn-demo.js` and must be covered even though they do not have a permanent static DOM ID:
+
+| Component ID | Current selectors or renderer behavior | Notes |
+| --- | --- | --- |
+| `account.menu` | `[data-account-menu-trigger]`, `[data-account-menu]`, `[data-auth-logout]` | Replaces header auth actions after sign-in. |
+| `account.pinned-view` | `[data-pinned-card]`, `[data-pinned-remove]`, `[data-pinned-media-course-id]` | No standalone user dashboard currently exists. |
+| `catalog.course-card` | `[data-course-card-id]`, `[data-course-id]`, `[data-pin-course]` | Instances are keyed by course IDs. |
+| `course.detail-section` | `[data-detail-section]` and its generated `aria-controls` target | Keep generated IDs deterministic and accessible. |
+| `course.player-section` | `[data-player-section]`, `[data-player-lesson]`, `[data-player-search]` | Coupled to player navigation and iframe rendering. |
+| `course.simulation-frame` | `.player-frame-shell`, `.lesson-frame`, `iframe[data-srcdoc]` | Must move to the approved isolated content-origin/sandbox model. |
+| `home.carousel-block` | `.demo-carousel-block`, `.carousel-viewport`, `[data-carousel-target]`, `[data-carousel-card-key]` | Generated IDs are runtime-specific today. |
+
+## Administration surfaces
+
+| Component ID | Exact paths | Responsibility | Status/risk |
+| --- | --- | --- | --- |
+| `admin.catalog-editor` | `static/gradstudio-learn-admin.html`, `static/gradstudio-learn-admin.js` | Existing course/module/simulation management | Active but must transition to GitHub-backed content; high risk |
+| `admin.security` | `static/admin-security.html` | Operational security administration | High risk; server authorization required |
+| `admin.legacy-editor` | `static/admin-edit.html` | Older editor surface | Legacy; verify before removal |
+| `admin.bulk-tools` | `static/Admin.html` | Specialized/bulk administration | Legacy/specialized; verify before removal |
+| `admin.preview` | `admin-preview/` | Administration preview assets | Preview only unless explicitly promoted |
+
+Client-side admin checks are never an authorization boundary. Every administrative API route must enforce server-side identity, role, and request protections before these surfaces are considered safe.
+
+## Alternate and redirect surfaces
+
+| Exact path(s) | Classification | Rule |
+| --- | --- | --- |
+| `static/learn-next.html`, `static/learn-next.css`, `static/learn-next.js` | Alternate/prototype UI | Do not treat as canonical without an approved promotion task. |
+| `static/gradstudioapplelike.html` | Alternate/prototype UI | Preserve as reference unless explicitly retired. |
+| `static/about.html`, `static/contact.html`, and legal/info HTML redirects | Route shims/redirect surfaces | Verify incoming links before editing or removing. |
+
+## Backend and delivery ownership
+
+| UI dependency | Exact source path | Notes |
+| --- | --- | --- |
+| Static asset delivery and API routing | `worker/src/index.js` | Currently serves app assets and routes; security audit applies. |
+| Auth middleware | `worker/src/middleware/auth.js` and related middleware | High-risk boundary; UI state is not proof of authorization. |
+| Cloudflare bindings/routes | `worker/wrangler.toml` | Currently shares persistent resources across environments. |
+| Schema and migrations | `worker/schema.sql`, `worker/migrations/` | Operational data remains outside GitHub; definitions stay tracked here. |
+
+## Inventory maintenance rules
+
+- Update this file in the same commit as any add, delete, move, rename, route change, canonical-path change, or component-ID change.
+- Give every new independently administered UI region a stable `component_id`.
+- Record whether the component is configuration-controlled or code-controlled once the UI registry is implemented.
+- Record all API, auth, content, and operational-data dependencies.
+- Never point a routine prompt at a prototype merely because its filename looks newer.
+- Removing a component requires tests for navigation, responsive layout, accessibility, orphaned selectors, and broken links.
+- Moving or renaming a component must preserve or intentionally migrate stable IDs so prompt history remains meaningful.
+
+
