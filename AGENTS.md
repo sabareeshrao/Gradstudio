@@ -14,7 +14,7 @@ The private `sabareeshrao/Gradstudio-2.0-Admin` repository owns requirements, im
 
 1. Read this file and `README.md`.
 2. For UI work, read `docs/ui/component-inventory.md` and inspect the current canonical files rather than relying on filenames alone.
-3. For backend, authentication, admin, data, deployment, or Cloudflare work, read `docs/security/2026-11-24-baseline-audit.md`.
+3. For backend, authentication, admin, data, deployment, or Cloudflare work, read `docs/security/README.md` and the detailed private audit at `sabareeshrao/Gradstudio-2.0-Admin/docs/security/2026-11-24-baseline-audit.md`.
 4. Check the private master tracker and founder decisions before changing architecture or repository boundaries.
 5. Inspect `git status` and preserve unrelated user work.
 
