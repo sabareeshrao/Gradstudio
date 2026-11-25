@@ -94,3 +94,42 @@ test('application staging workflows are scoped, gated, pinned, and production-fr
   assert.match(rollback, /if: needs\.staging-gate\.outputs\.enabled == 'true'/);
   assert.match(rollback, /npx wrangler rollback "\$TARGET_VERSION_ID" --name gradstudio-app-staging/);
 });
+
+test('staging smoke and rollback construct exact endpoint URLs without double slashes', async () => {
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const origin = 'https://gradstudio-app-staging.example.workers.dev';
+  const source = 'a'.repeat(40);
+  const fixtures = [
+    ['application-staging.yml', 3],
+    ['application-staging-rollback.yml', 1]
+  ];
+  for (const [filename, count] of fixtures) {
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows', filename), 'utf8');
+    const scripts = [...workflow.matchAll(/node -e "([^"\n]*const origin=new URL[^"\n]*)"/g)].map(match => match[1]);
+    assert.equal(scripts.length, count, filename);
+    for (const script of scripts) {
+      const requests = [];
+      const fakeFetch = async (input) => {
+        const url = new URL(input);
+        assert.equal(url.origin, origin);
+        assert.ok(!url.pathname.startsWith('//'), url.href);
+        requests.push(url.pathname);
+        if (url.pathname === '/api/health') return Response.json({ environment: 'staging', content_source: 'git', source_commit: source });
+        if (url.pathname === '/catalog/v1/active.json') return Response.json({ contract: 'gradstudio-content-catalog/v1' });
+        if (url.pathname === '/api/content/v1/catalog') return Response.json({ state: 'ready' });
+        if (url.pathname === '/api/courses') return new Response(null, { status: 404 });
+        if (url.pathname === '/gradstudio-learn-admin.html') return Response.redirect(origin + '/admin-content-status.html', 302);
+        if (url.pathname === '/') return new Response('application');
+        throw new Error('Unexpected staging path: ' + url.pathname);
+      };
+      // Replace the exit call with a return so the test does not exit the runner.
+      const executable = script.replaceAll('process.exit(0)', 'return');
+      await new AsyncFunction('fetch', 'process', 'setTimeout', executable)(
+        fakeFetch,
+        { env: { APPLICATION_STAGING_ORIGIN: origin, CONTENT_STAGING_ORIGIN: origin, APP_SOURCE_COMMIT: source } },
+        () => { throw new Error('Unexpected retry'); }
+      );
+      assert.ok(requests.length > 0);
+    }
+  }
+});
