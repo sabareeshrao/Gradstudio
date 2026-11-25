@@ -76,7 +76,7 @@
     ],
     "hero": {
       "featureAlt": "Featured module preview",
-      "heading": "Clearer concepts. Faster learning.",
+      "heading": "Clear concepts. Learn faster.",
       "primaryAction": {
         "href": "#courses",
         "label": "Start Learning"
