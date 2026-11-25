@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateEnvironmentConfig } from '../../scripts/validate-environment-config.mjs';
+import { validateEnvironmentConfig, validateEnvironmentPair } from '../../scripts/validate-environment-config.mjs';
 
 const workerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -31,4 +31,10 @@ test('checked-in dev environment no longer contains persistent production bindin
   const devSection = content.slice(content.indexOf('[env.dev]'));
   assert.doesNotMatch(devSection, /b1f24bfd-4ca5-4c2b-94af-8037cd68422f|e5dc25fdeb9d42eb8947287323cf7027|92489a91aab6495ab072d7e2715eb8e0|dd4395372be745e5b7d5f63acddb002a/);
   assert.doesNotMatch(devSection, /bucket_name\s*=\s*"learning-simulations"/);
+});
+
+test('development and staging templates share no worker, binding, bucket, or route identifiers', () => {
+  const dev = fs.readFileSync(path.join(workerRoot, 'wrangler.dev.example.toml'), 'utf8');
+  const staging = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');
+  assert.deepEqual(validateEnvironmentPair(dev, staging), []);
 });

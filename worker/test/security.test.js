@@ -116,6 +116,8 @@ test('admin routes deny missing, refresh, non-admin, and inactive identities', a
 
   assert.equal((await worker.fetch(apiRequest('/api/admin/users'), env, context())).status, 401);
 
+  assert.equal((await worker.fetch(apiRequest('/api/admin/users', { token: 'not-a-valid-jwt' }), env, context())).status, 401);
+
   const refresh = (await generateTokens(admin, env)).refreshToken;
   assert.equal((await worker.fetch(apiRequest('/api/admin/users', { token: refresh }), env, context())).status, 401);
 

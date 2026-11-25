@@ -60,6 +60,24 @@ export function validateEnvironmentConfig(content, expectedEnvironment, options 
   return errors;
 }
 
+export function extractEnvironmentResources(content) {
+  return {
+    worker: content.match(/^name\s*=\s*"([^"]+)"/m)?.[1] || '',
+    databaseId: content.match(/^database_id\s*=\s*"([^"]+)"/m)?.[1] || '',
+    kvIds: [...content.matchAll(/^id\s*=\s*"([^"]+)"/gm)].map(match => match[1]),
+    bucket: content.match(/^bucket_name\s*=\s*"([^"]+)"/m)?.[1] || '',
+    routes: [...content.matchAll(/(?:pattern\s*=\s*|routes\s*=\s*\[)"?([^"\]\r\n]+)"?/gm)].map(match => match[1].trim())
+  };
+}
+
+export function validateEnvironmentPair(firstContent, secondContent) {
+  const first = extractEnvironmentResources(firstContent);
+  const second = extractEnvironmentResources(secondContent);
+  const firstValues = new Set([first.worker, first.databaseId, ...first.kvIds, first.bucket, ...first.routes].filter(Boolean));
+  const secondValues = [second.worker, second.databaseId, ...second.kvIds, second.bucket, ...second.routes].filter(Boolean);
+  return secondValues.filter(value => firstValues.has(value)).map(value => `Environment resource or route is shared: ${value}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
   const example = args.includes('--example');
