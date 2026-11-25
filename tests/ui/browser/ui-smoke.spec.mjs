@@ -13,8 +13,8 @@ test.beforeEach(async ({ page }, testInfo) => {
     await page.route("**/ui-config/generated/ui-config.runtime.js", async route => {
       const response = await route.fetch();
       const body = await response.text();
-      const suffix = "\\n;(() => { const c = structuredClone(window.__GRADSTUDIO_UI_CONFIG__); const f = " + JSON.stringify(visualCopy) + "; const merge = (a,b) => { for (const [k,v] of Object.entries(b)) { if (v && typeof v === 'object') merge(a[k],v); else a[k]=v; } }; merge(c,f); window.__GRADSTUDIO_UI_CONFIG__ = c; })();";
-      await route.fulfill({response,body:body+suffix.replace(/^\\\\n/, "\\n")});
+      const suffix = "\n;(() => { const c = structuredClone(window.__GRADSTUDIO_UI_CONFIG__); const f = " + JSON.stringify(visualCopy) + "; const merge = (a,b) => { for (const [k,v] of Object.entries(b)) { if (v && typeof v === 'object') merge(a[k],v); else a[k]=v; } }; merge(c,f); window.__GRADSTUDIO_UI_CONFIG__ = c; })();";
+      await route.fulfill({response,body:body+suffix});
     });
   }
   await page.route("https://accounts.google.com/**", (route) => route.abort());
