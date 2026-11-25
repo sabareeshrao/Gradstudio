@@ -40,3 +40,12 @@ test('pull-request validation has read-only permissions and no secret references
   assert.doesNotMatch(workflow, /\$\{\{\s*secrets\./);
   assert.doesNotMatch(workflow, /wrangler\s+deploy|r2\s+object\s+put/);
 });
+
+test('security workflow actions are pinned to immutable revisions', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github/workflows/security-ci.yml'), 'utf8');
+  const actions = [...workflow.matchAll(/uses:\s*([^@\s]+)@([^\s#]+)/g)];
+  assert.ok(actions.length >= 4, 'expected every security workflow action to be inspected');
+  for (const [, action, revision] of actions) {
+    assert.match(revision, /^[a-f0-9]{40}$/, `${action} must use an immutable 40-character commit SHA`);
+  }
+});
