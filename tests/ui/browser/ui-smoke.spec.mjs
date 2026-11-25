@@ -38,6 +38,14 @@ test("home, catalog, information and authentication routes remain usable", async
   expect(runtimeErrors).toEqual([]);
 });
 
+test("generated compatibility preview keeps its self-contained home link", async ({ page }) => {
+  await page.goto("/gradstudio-learn-demo.html?demoFallback=1");
+  const brand = page.locator("[data-component-id='site.brand']");
+  await expect(brand).toBeVisible();
+  await expect(brand).toHaveAttribute("href", "gradstudio-learn-demo.html");
+  await expect.poll(() => page.evaluate(() => window.__GRADSTUDIO_UI_CONFIG_APPLIED__)).toBe(1);
+});
+
 test("course detail and player expose deterministic component hooks", async ({ page }) => {
   await page.goto("/?demoFallback=1");
   const card = page.locator("[data-component-id='catalog.course-card']").first();

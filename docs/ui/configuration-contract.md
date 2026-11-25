@@ -1,7 +1,9 @@
 # Prompt-driven UI configuration contract
 
-Status: Phase 3 implementation contract, 2026-11-24  
-Canonical shell: `static/index.html`  
+Status: Phase 3 implementation contract, 2026-11-24
+
+Canonical shell: `static/index.html`
+
 Machine registry: `static/ui-config/registry.json`
 
 ## Source decisions

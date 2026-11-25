@@ -62,7 +62,8 @@
     function applyBrand(brand) {
         const brandLink = document.querySelector("[data-component-id='site.brand']");
         if (!brandLink) return;
-        brandLink.setAttribute("href", brand.homeHref);
+        const isCompatibilityPreview = window.location.pathname.endsWith("/gradstudio-learn-demo.html");
+        if (!isCompatibilityPreview) brandLink.setAttribute("href", brand.homeHref);
         brandLink.setAttribute("aria-label", `${brand.name} home`);
         const image = brandLink.querySelector("img");
         if (image) {
