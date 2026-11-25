@@ -13,13 +13,13 @@ routes = [
 	{ pattern = "api.gradstudio.org", custom_domain = true }
 ]
 
-# D1 Database binding (shared across environments)
+# D1 Database binding (production only)
 [[d1_databases]]
 binding = "DB"
 database_name = "learning-platform-db"
 database_id = "b1f24bfd-4ca5-4c2b-94af-8037cd68422f"
 
-# KV Namespace bindings (shared)
+# KV Namespace bindings (production only)
 [[kv_namespaces]]
 binding = "KV"
 id = "e5dc25fdeb9d42eb8947287323cf7027"
@@ -32,51 +32,35 @@ id = "92489a91aab6495ab072d7e2715eb8e0"
 binding = "RATE_LIMITS"
 id = "dd4395372be745e5b7d5f63acddb002a"
 
-# R2 Bucket binding (shared)
+# R2 Bucket binding (production only)
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "learning-simulations"
 
 [vars]
 ENVIRONMENT = "production"
-ALLOWED_ORIGINS = "https://gradstudio.org,https://www.gradstudio.org,https://learning-platform-api.sabareeshrao.workers.dev,http://localhost:3000,http://localhost:5173"
+ENVIRONMENT_ISOLATED = "true"
+JWT_ISSUER = "gradstudio"
+JWT_AUDIENCE = "gradstudio-api"
+ALLOWED_ORIGINS = "https://gradstudio.org,https://www.gradstudio.org,https://learning-platform-api.sabareeshrao.workers.dev"
 MAX_CACHE_TTL = "900"
 STATIC_PREFIX = "static/"
 ADMIN_PREFIX = "admin-preview/"
 
 # ===== DEV ENVIRONMENT =====
-# Deploy with: npx wrangler deploy --env dev
-# This ONLY deploys to learning-platform-api.sabareeshrao.workers.dev
-# It does NOT touch gradstudio.org production routes.
+# Persistent bindings are deliberately absent here. Do not add production IDs.
+# Copy wrangler.dev.example.toml to ignored wrangler.dev.toml after isolated
+# resources exist, then use the repository deploy-dev script.
 [env.dev]
 workers_dev = true
 routes = []
-# No routes = workers.dev only (no production domains)
-
-[[env.dev.d1_databases]]
-binding = "DB"
-database_name = "learning-platform-db"
-database_id = "b1f24bfd-4ca5-4c2b-94af-8037cd68422f"
-
-[[env.dev.kv_namespaces]]
-binding = "KV"
-id = "e5dc25fdeb9d42eb8947287323cf7027"
-
-[[env.dev.kv_namespaces]]
-binding = "REFRESH_TOKENS"
-id = "92489a91aab6495ab072d7e2715eb8e0"
-
-[[env.dev.kv_namespaces]]
-binding = "RATE_LIMITS"
-id = "dd4395372be745e5b7d5f63acddb002a"
-
-[[env.dev.r2_buckets]]
-binding = "R2"
-bucket_name = "learning-simulations"
 
 [env.dev.vars]
 ENVIRONMENT = "dev"
-ALLOWED_ORIGINS = "https://learning-platform-api-dev.sabareeshrao.workers.dev,http://localhost:3000,http://localhost:5173"
+ENVIRONMENT_ISOLATED = "false"
+JWT_ISSUER = "gradstudio-dev"
+JWT_AUDIENCE = "gradstudio-api-dev"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:5173"
 MAX_CACHE_TTL = "900"
 STATIC_PREFIX = "dev-static/"
 ADMIN_PREFIX = "dev-admin/"

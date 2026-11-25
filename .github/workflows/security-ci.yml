@@ -1,0 +1,48 @@
+name: Security and validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Install locked dependencies
+        working-directory: worker
+        run: npm ci
+      - name: Validate source, schema, and security policy
+        working-directory: worker
+        run: npm run validate
+      - name: Scan repository for credential signatures
+        run: node scripts/scan-secrets.mjs
+      - name: Validate non-production configuration templates
+        run: |
+          node scripts/validate-environment-config.mjs worker/wrangler.dev.example.toml dev --example
+          node scripts/validate-environment-config.mjs worker/wrangler.staging.example.toml staging --example
+      - name: Audit runtime dependencies
+        working-directory: worker
+        run: npm audit --audit-level=high
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1

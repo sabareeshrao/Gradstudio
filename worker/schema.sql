@@ -1,295 +1,404 @@
--- =====================================================
--- CLOUDFLARE D1 DATABASE SCHEMA
--- Learning Platform - Complete Structure
--- =====================================================
+-- GradStudio canonical schema for a fresh isolated database.
+-- This file contains no educational or customer data.
+PRAGMA foreign_keys = ON;
 
--- 1. COURSES TABLE
--- Stores high-level course information (AWS, SQL, GCP, etc.)
+CREATE TABLE categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+  deleted_at INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE courses (
-    icon_class TEXT NOT NULL,               -- e.g., 'fa-brands fa-aws'
-    description TEXT,                       -- Course overview
-    color_theme TEXT,                       -- e.g., 'orange', 'blue'
-    category TEXT,                          -- Category id (e.g., 'skill', 'role')
-    display_order INTEGER DEFAULT 0,        -- Sort order in sidebar
-         reports INTEGER DEFAULT 0,
-         last_synced_at TEXT DEFAULT (datetime('now')),
-    is_deleted BOOLEAN DEFAULT 0,           -- Soft delete flag
-    is_locked BOOLEAN DEFAULT 1,            -- Lock entire course
-    created_at TEXT DEFAULT (datetime('now')),
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  icon_class TEXT,
+  color_theme TEXT,
+  category TEXT,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+  deleted_at TEXT,
+  is_locked INTEGER NOT NULL DEFAULT 1 CHECK (is_locked IN (0, 1)),
+  parent_course_id TEXT,
+  type TEXT NOT NULL DEFAULT 'course',
+  level TEXT,
+  labs_count INTEGER NOT NULL DEFAULT 0,
+  tags TEXT,
+  thumbnail_type TEXT,
+  thumbnail_image_url TEXT,
+  thumbnail_html TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (parent_course_id) REFERENCES courses(id) ON DELETE SET NULL
+);
 
--- 2. SECTIONS TABLE
--- Course sections (e.g., "Cloud Foundations", "Compute Services")
 CREATE TABLE sections (
-    id TEXT PRIMARY KEY,                    -- e.g., 'aws-sec-001'
-    course_id TEXT NOT NULL,                -- Foreign key to courses.id
-    title TEXT NOT NULL,                    -- e.g., 'Cloud Foundations'
-    display_order INTEGER DEFAULT 0,        -- Order within course
-    is_locked BOOLEAN DEFAULT 1,            -- Lock entire section
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+  id TEXT PRIMARY KEY,
+  course_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_locked INTEGER NOT NULL DEFAULT 1 CHECK (is_locked IN (0, 1)),
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+  deleted_at INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
-    CREATE TABLE IF NOT EXISTS simulation_reports (
-         id INTEGER PRIMARY KEY AUTOINCREMENT,
-         simulation_id TEXT NOT NULL,
-         user_id TEXT NOT NULL,
-         created_at TEXT DEFAULT (datetime('now')),
-         FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
-         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-         UNIQUE (simulation_id, user_id)
-    );
--- 3. SIMULATIONS TABLE
-    id TEXT PRIMARY KEY,                    -- e.g., 'sim-aws-001'
-    section_id TEXT NOT NULL,               -- Foreign key to sections.id
-    course_id TEXT NOT NULL,                -- Denormalized for faster queries
-    slug TEXT UNIQUE NOT NULL,              -- e.g., 'ec2-basics'
-    title TEXT NOT NULL,                    -- e.g., 'EC2 Basics'
-    description TEXT,                       -- Short description
-    file_path TEXT NOT NULL,                -- R2 path: 'simulations/aws/ec2-basics/index.html'
-    has_simulation BOOLEAN DEFAULT 0,       -- 1 if interactive, 0 if text-only
-    display_order INTEGER DEFAULT 0,        -- Order within section
-    search_text TEXT,                       -- Lowercased searchable content
-    upload_date TEXT DEFAULT (date('now')), -- When it was added
-    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+CREATE TABLE simulations (
+  id TEXT PRIMARY KEY,
+  section_id TEXT NOT NULL,
+  course_id TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  description TEXT,
+  file_path TEXT,
+  link TEXT,
+  has_simulation INTEGER NOT NULL DEFAULT 0 CHECK (has_simulation IN (0, 1)),
+  display_order INTEGER NOT NULL DEFAULT 0,
+  search_text TEXT,
+  upload_date TEXT NOT NULL DEFAULT (date('now')),
+  is_locked INTEGER NOT NULL DEFAULT 1 CHECK (is_locked IN (0, 1)),
+  is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+  deleted_at INTEGER,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE,
+  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
--- Full-text search index on simulations
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  display_name TEXT,
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  last_login_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE user_access (
+  user_id TEXT PRIMARY KEY,
+  has_full_access INTEGER NOT NULL DEFAULT 0 CHECK (has_full_access IN (0, 1)),
+  unlocked_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE payments (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE statistics (
+  simulation_id TEXT PRIMARY KEY,
+  views INTEGER NOT NULL DEFAULT 0,
+  likes INTEGER NOT NULL DEFAULT 0,
+  dislikes INTEGER NOT NULL DEFAULT 0,
+  reports INTEGER NOT NULL DEFAULT 0,
+  last_synced_at TEXT,
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT,
+  author_name TEXT NOT NULL,
+  text TEXT NOT NULL,
+  upvotes INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE simulation_views (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT,
+  viewed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (simulation_id, user_id),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE simulation_likes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (simulation_id, user_id),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE simulation_dislikes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (simulation_id, user_id),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE simulation_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  reason TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (simulation_id, user_id),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE simulation_bookmarks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (simulation_id, user_id),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comment_likes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  comment_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (comment_id, user_id),
+  FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_pins (
+  user_id TEXT NOT NULL,
+  item_key TEXT NOT NULL,
+  type TEXT NOT NULL,
+  course_id TEXT NOT NULL,
+  lesson_index INTEGER NOT NULL DEFAULT 0,
+  title TEXT,
+  meta TEXT,
+  saved_at INTEGER,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (user_id, item_key),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE sessions (
+  token TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  email TEXT,
+  display_name TEXT,
+  expires_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  simulation_id TEXT NOT NULL,
+  tag_name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE metadata (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE carousels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  header TEXT,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  display_order INTEGER NOT NULL DEFAULT 0,
+  layout_style TEXT NOT NULL DEFAULT 'horizontal_scroll',
+  grid_columns INTEGER NOT NULL DEFAULT 2,
+  infinite_scroll INTEGER NOT NULL DEFAULT 0 CHECK (infinite_scroll IN (0, 1)),
+  snap_scroll INTEGER NOT NULL DEFAULT 0 CHECK (snap_scroll IN (0, 1)),
+  text_align TEXT NOT NULL DEFAULT 'left',
+  border_radius INTEGER NOT NULL DEFAULT 14,
+  rounded_enabled INTEGER NOT NULL DEFAULT 1 CHECK (rounded_enabled IN (0, 1)),
+  header_font TEXT NOT NULL DEFAULT 'Inter',
+  header_font_size INTEGER NOT NULL DEFAULT 32,
+  header_color TEXT NOT NULL DEFAULT '#ffffff',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE carousel_cards (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  carousel_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  icon_class TEXT,
+  color_hex TEXT NOT NULL DEFAULT '#3b82f6',
+  target_type TEXT,
+  target_id TEXT,
+  section_id TEXT,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
+  content_type TEXT NOT NULL DEFAULT 'standard',
+  image_url TEXT,
+  iframe_url TEXT,
+  content_html TEXT,
+  width TEXT NOT NULL DEFAULT '300px',
+  height_px TEXT NOT NULL DEFAULT 'auto',
+  full_bleed INTEGER NOT NULL DEFAULT 0 CHECK (full_bleed IN (0, 1)),
+  course_links TEXT,
+  bg_color TEXT,
+  chip_text TEXT,
+  chip_color TEXT,
+  chip_enabled INTEGER NOT NULL DEFAULT 1 CHECK (chip_enabled IN (0, 1)),
+  heading_font TEXT,
+  heading_size INTEGER,
+  heading_color TEXT,
+  sub_font TEXT,
+  sub_size INTEGER,
+  sub_color TEXT,
+  text_position TEXT NOT NULL DEFAULT 'bottom',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (carousel_id) REFERENCES carousels(id) ON DELETE CASCADE
+);
+
+CREATE TABLE content_views (
+  id TEXT PRIMARY KEY,
+  sim_id TEXT NOT NULL,
+  user_id TEXT,
+  ip TEXT,
+  device_type TEXT,
+  browser TEXT,
+  referrer TEXT,
+  duration_seconds INTEGER NOT NULL DEFAULT 0,
+  completed INTEGER NOT NULL DEFAULT 0 CHECK (completed IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (sim_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE content_shares (
+  id TEXT PRIMARY KEY,
+  sim_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  platform TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (sim_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE content_reports (
+  id TEXT PRIMARY KEY,
+  sim_id TEXT NOT NULL,
+  reported_by TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  resolved_by TEXT,
+  resolution_action TEXT,
+  resolution_note TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  resolved_at TEXT,
+  FOREIGN KEY (sim_id) REFERENCES simulations(id) ON DELETE CASCADE,
+  FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE security_events (
+  id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  ip TEXT,
+  user_id TEXT,
+  email TEXT,
+  endpoint TEXT,
+  metadata TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE file_audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action TEXT NOT NULL,
+  file_key TEXT,
+  file_name TEXT,
+  user_id TEXT,
+  user_email TEXT,
+  metadata TEXT,
+  details TEXT,
+  timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_categories_order ON categories(display_order);
+CREATE INDEX idx_courses_order ON courses(display_order);
+CREATE INDEX idx_courses_category ON courses(category);
+CREATE INDEX idx_courses_parent ON courses(parent_course_id);
+CREATE INDEX idx_sections_course ON sections(course_id, display_order);
+CREATE INDEX idx_simulations_course ON simulations(course_id);
+CREATE INDEX idx_simulations_section ON simulations(section_id, display_order);
+CREATE INDEX idx_simulations_upload_date ON simulations(upload_date DESC);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_payments_user ON payments(user_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_comments_simulation ON comments(simulation_id);
+CREATE INDEX idx_comments_user ON comments(user_id);
+CREATE INDEX idx_simulation_views_sim ON simulation_views(simulation_id);
+CREATE INDEX idx_simulation_views_user ON simulation_views(user_id);
+CREATE INDEX idx_simulation_likes_sim ON simulation_likes(simulation_id);
+CREATE INDEX idx_simulation_dislikes_sim ON simulation_dislikes(simulation_id);
+CREATE INDEX idx_simulation_reports_sim ON simulation_reports(simulation_id);
+CREATE INDEX idx_simulation_bookmarks_user ON simulation_bookmarks(user_id);
+CREATE INDEX idx_comment_likes_comment ON comment_likes(comment_id);
+CREATE INDEX idx_user_pins_user ON user_pins(user_id);
+CREATE INDEX idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX idx_sessions_expires_at ON sessions(expires_at);
+CREATE INDEX idx_tags_simulation ON tags(simulation_id);
+CREATE INDEX idx_tags_name ON tags(tag_name);
+CREATE INDEX idx_carousels_active ON carousels(is_active, display_order);
+CREATE INDEX idx_carousel_cards_carousel ON carousel_cards(carousel_id, display_order);
+CREATE INDEX idx_content_views_sim ON content_views(sim_id);
+CREATE INDEX idx_content_views_date ON content_views(created_at);
+CREATE INDEX idx_content_reports_status ON content_reports(status);
+CREATE INDEX idx_security_events_type ON security_events(event_type);
+CREATE INDEX idx_security_events_date ON security_events(created_at);
+
 CREATE VIRTUAL TABLE simulations_fts USING fts5(
-    id UNINDEXED,
-    title,
-    content_rowid=rowid
+  id UNINDEXED,
+  title,
+  description,
+  search_text,
+  content='simulations',
+  content_rowid='rowid'
+);
 
--- Triggers to keep FTS index in sync
 CREATE TRIGGER simulations_fts_insert AFTER INSERT ON simulations BEGIN
-    INSERT INTO simulations_fts(rowid, id, title, description, search_text)
-    VALUES (new.rowid, new.id, new.title, new.description, new.search_text);
+  INSERT INTO simulations_fts(rowid, id, title, description, search_text)
+  VALUES (new.rowid, new.id, new.title, new.description, new.search_text);
 END;
 
 CREATE TRIGGER simulations_fts_delete AFTER DELETE ON simulations BEGIN
-    DELETE FROM simulations_fts WHERE rowid = old.rowid;
+  INSERT INTO simulations_fts(simulations_fts, rowid, id, title, description, search_text)
+  VALUES ('delete', old.rowid, old.id, old.title, old.description, old.search_text);
 END;
 
 CREATE TRIGGER simulations_fts_update AFTER UPDATE ON simulations BEGIN
-    DELETE FROM simulations_fts WHERE rowid = old.rowid;
-    INSERT INTO simulations_fts(rowid, id, title, description, search_text)
-    VALUES (new.rowid, new.id, new.title, new.description, new.search_text);
+  INSERT INTO simulations_fts(simulations_fts, rowid, id, title, description, search_text)
+  VALUES ('delete', old.rowid, old.id, old.title, old.description, old.search_text);
+  INSERT INTO simulations_fts(rowid, id, title, description, search_text)
+  VALUES (new.rowid, new.id, new.title, new.description, new.search_text);
 END;
--- 4. TAGS TABLE
--- Flexible tagging system for filtering
-CREATE TABLE tags (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    simulation_id TEXT NOT NULL,
-    tag_name TEXT NOT NULL,                 -- e.g., 'compute', 'storage', 'beginner'
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
-);
 
-CREATE INDEX idx_tags_simulation ON tags(simulation_id);
-CREATE INDEX idx_tags_name ON tags(tag_name);
-
--- 5. STATISTICS TABLE
--- View counts, likes, and dislikes
-CREATE TABLE statistics (
-    simulation_id TEXT PRIMARY KEY,
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
--- 6. COMMENTS TABLE
--- User comments on simulations (future feature)
-CREATE TABLE comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    simulation_id TEXT NOT NULL,
-    author_name TEXT NOT NULL,              -- Anonymous names initially
-    text TEXT NOT NULL,
-    upvotes INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE
-);
-
-
--- 7. METADATA TABLE
--- System-level settings and counters
-CREATE TABLE metadata (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    updated_at TEXT DEFAULT (datetime('now'))
--- Insert initial metadata
-INSERT INTO metadata (key, value) VALUES 
-    ('total_simulations', '0'),
-    ('last_upload_date', date('now')),
-    ('version', '1.0.0');
-
--- =====================================================
--- INDEXES FOR PERFORMANCE
--- =====================================================
-
-CREATE INDEX idx_simulations_course ON simulations(course_id);
-CREATE INDEX idx_simulations_section ON simulations(section_id);
-CREATE INDEX idx_simulations_slug ON simulations(slug);
-CREATE INDEX idx_simulations_upload_date ON simulations(upload_date DESC);
-CREATE INDEX idx_sections_course ON sections(course_id);
--- VIEWS FOR COMMON QUERIES
--- =====================================================
-CREATE VIEW v_course_overview AS
-SELECT 
-    c.id,
-    c.title,
-    c.icon_class,
-    c.color_theme,
-    COUNT(DISTINCT s.id) as section_count,
-    COUNT(DISTINCT sim.id) as simulation_count,
-    SUM(CASE WHEN sim.has_simulation = 1 THEN 1 ELSE 0 END) as interactive_count
-FROM courses c
-LEFT JOIN sections s ON c.id = s.course_id
-LEFT JOIN simulations sim ON s.id = sim.section_id
-WHERE c.is_active = 1
-ORDER BY c.display_order;
-
--- View: Recent simulations across all courses
-CREATE VIEW v_recent_simulations AS
-SELECT 
-    sim.id,
-    sim.slug,
-    sim.title,
-    sim.course_id,
-    c.title as course_title,
-    c.icon_class as course_icon,
-    sim.upload_date,
-    COALESCE(st.views, 0) as views,
-FROM simulations sim
-JOIN courses c ON sim.course_id = c.id
-LEFT JOIN statistics st ON sim.id = st.simulation_id
-ORDER BY sim.upload_date DESC
-LIMIT 10;
-
--- =====================================================
--- ADDITIVE EXTENSIONS (AUTH, PAYMENTS, ACCESS, ENGAGEMENT)
--- Backward-compatible: no existing tables or queries modified
--- =====================================================
-
--- 8. USERS TABLE
--- Email/password authentication
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    display_name TEXT,
-    is_active BOOLEAN DEFAULT 1,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE INDEX idx_users_email ON users(email);
-
--- 9. USER ACCESS TABLE
--- One-time lifetime access to all courses (₹99)
-CREATE TABLE user_access (
-    user_id TEXT PRIMARY KEY,
-    has_full_access BOOLEAN DEFAULT 0,
-    unlocked_at TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- 10. PAYMENTS TABLE
--- Records payment attempts and outcomes
-CREATE TABLE payments (
-    id TEXT PRIMARY KEY,                 -- payment provider id
-    user_id TEXT NOT NULL,
-    amount INTEGER NOT NULL DEFAULT 99,  -- ₹99
-    currency TEXT NOT NULL DEFAULT 'INR',
-    status TEXT NOT NULL,                -- pending | success | failed
-    provider TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_payments_user ON payments(user_id);
-CREATE INDEX idx_payments_status ON payments(status);
-
--- 11. CONTENT LOCKING
--- Add is_locked flag to simulations (default locked)
-ALTER TABLE simulations ADD COLUMN is_locked BOOLEAN DEFAULT 1;
-
--- 12. ENGAGEMENT TRACKING
--- Per-user views (deduped by simulation_id + user_id)
-CREATE TABLE simulation_views (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    simulation_id TEXT NOT NULL,
-    user_id TEXT,                        -- NULL for anonymous
-    viewed_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    UNIQUE (simulation_id, user_id)
-);
-
-CREATE INDEX idx_simulation_views_sim ON simulation_views(simulation_id);
-CREATE INDEX idx_simulation_views_user ON simulation_views(user_id);
-
--- Per-user likes (one like per user per simulation)
-CREATE TABLE simulation_likes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    simulation_id TEXT NOT NULL,
-    user_id TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE (simulation_id, user_id)
-);
-
-CREATE INDEX idx_simulation_likes_sim ON simulation_likes(simulation_id);
-CREATE INDEX idx_simulation_likes_user ON simulation_likes(user_id);
-
--- Per-user dislikes (one dislike per user per simulation)
-CREATE TABLE simulation_dislikes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    simulation_id TEXT NOT NULL,
-    user_id TEXT NOT NULL,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (simulation_id) REFERENCES simulations(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE (simulation_id, user_id)
-);
-
-CREATE INDEX idx_simulation_dislikes_sim ON simulation_dislikes(simulation_id);
-CREATE INDEX idx_simulation_dislikes_user ON simulation_dislikes(user_id);
-
--- 13. COMMENT USER LINK
--- Link comments to users (nullable for anonymous)
-ALTER TABLE comments ADD COLUMN user_id TEXT;
-CREATE INDEX idx_comments_user ON comments(user_id);
-
--- 14. CAROUSELS & CAROUSEL CARDS
--- Supports multiple dynamic carousels on the homepage
-
-CREATE TABLE IF NOT EXISTS carousels (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,                     -- Internal name
-    header TEXT,                            -- Display header (e.g. 'Featured Courses')
-    is_active BOOLEAN DEFAULT 1,
-    display_order INTEGER DEFAULT 0,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS carousel_cards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    carousel_id INTEGER NOT NULL,           -- Link to carousels table
-    title TEXT NOT NULL,
-    description TEXT,
-    icon_class TEXT,                        -- FontAwesome class
-    color_hex TEXT DEFAULT '#3b82f6',       -- Accent color
-    target_type TEXT,                       -- 'course' | 'simulation' | 'external' | 'none'
-    target_id TEXT,                         -- courseId, simulation slug, or URL
-    target_section_id TEXT,                 -- specific section id within course
-    display_order INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT 1,
-    content_type TEXT DEFAULT 'standard',   -- 'standard' | 'image' | 'html' | 'iframe'
-    image_url TEXT,
-    iframe_url TEXT,
-    content_html TEXT,
-    width TEXT DEFAULT '300px',
-    height_px TEXT DEFAULT 'auto',
-    full_bleed INTEGER DEFAULT 0,           -- 1 if image should fill entire card
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (carousel_id) REFERENCES carousels(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_carousel_cards_carousel ON carousel_cards(carousel_id);
-CREATE INDEX idx_carousel_cards_active ON carousel_cards(is_active);
-CREATE INDEX idx_carousels_active ON carousels(is_active);
+INSERT INTO metadata (key, value) VALUES ('schema_version', '2026-11-24');

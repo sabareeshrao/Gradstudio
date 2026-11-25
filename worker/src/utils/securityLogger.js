@@ -5,6 +5,7 @@
 
 export async function logSecurityEvent(env, ctx, type, data) {
     try {
+        if (!env.DB) return;
         const { ip = 'unknown', userId = null, email = null, endpoint = 'unknown', ...metadata } = data;
 
         // Non-blocking insert using ctx.waitUntil

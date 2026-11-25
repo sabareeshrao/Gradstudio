@@ -9,21 +9,19 @@ import { AuthError } from '../utils/constants.js';
 export function isAllowedOrigin(origin, env) {
     if (!origin) return false;
 
-    // Instagram in-app browser, WebViews, and some redirects send 'null' as origin string
-    // Allow null origin for public API access (no credentials will be sent anyway)
-    if (origin === 'null') return true;
+    if (origin === 'null') return false;
 
     // Development: Allow localhost
-    if (env.ENVIRONMENT === 'development') {
-        if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
-            return true;
+    if (env.ENVIRONMENT === 'development' || env.ENVIRONMENT === 'dev' || env.ENVIRONMENT === 'test') {
+        try {
+            const parsed = new URL(origin);
+            if (parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')) return true;
+        } catch (_) {
+            return false;
         }
     }
 
-    const allowed = (env.ALLOWED_ORIGINS || '').split(',');
-    // Add production domains
-    allowed.push('https://gradstudio.org');
-    allowed.push('https://www.gradstudio.org');
+    const allowed = (env.ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean);
     return allowed.includes(origin);
 }
 
@@ -47,16 +45,13 @@ export function handleCors(request, env) {
             return new Response(null, { status: 403 });
         }
 
-        // For null origin (in-app browsers), respond with wildcard
-        const allowOriginHeader = origin === 'null' ? '*' : origin;
-
         return new Response(null, {
             status: 204,
             headers: {
-                'Access-Control-Allow-Origin': allowOriginHeader,
+                'Access-Control-Allow-Origin': origin,
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cache-Control, Pragma, X-Request-ID',
-                'Access-Control-Allow-Credentials': origin === 'null' ? 'false' : 'true',
+                'Access-Control-Allow-Credentials': 'true',
                 'Access-Control-Max-Age': '3600',
                 'Vary': 'Origin'
             }
@@ -93,21 +88,11 @@ export function getCorsHeaders(request, env) {
     // Same-origin requests (no Origin header) - allow
     if (!origin) {
         return {
-            'Access-Control-Allow-Origin': '*',
             'Vary': 'Origin'
         };
     }
 
     if (!isAllowedOrigin(origin, env)) return {};
-
-    // For null origin (Instagram/WebView in-app browsers), use wildcard
-    // Cannot use credentials with wildcard, but public content is still accessible
-    if (origin === 'null') {
-        return {
-            'Access-Control-Allow-Origin': '*',
-            'Vary': 'Origin'
-        };
-    }
 
     return {
         'Access-Control-Allow-Origin': origin,

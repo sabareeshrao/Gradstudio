@@ -1,0 +1,38 @@
+name = "gradstudio-app-dev"
+main = "src/index.js"
+compatibility_date = "2024-01-20"
+compatibility_flags = [ "nodejs_compat" ]
+workers_dev = true
+routes = []
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gradstudio-app-dev"
+database_id = "REPLACE_WITH_DEV_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_DEV_KV_ID"
+
+[[kv_namespaces]]
+binding = "REFRESH_TOKENS"
+id = "REPLACE_WITH_DEV_REFRESH_TOKENS_KV_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "REPLACE_WITH_DEV_RATE_LIMITS_KV_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "gradstudio-app-assets-dev"
+
+[vars]
+ENVIRONMENT = "dev"
+ENVIRONMENT_ISOLATED = "true"
+JWT_ISSUER = "gradstudio-dev"
+JWT_AUDIENCE = "gradstudio-api-dev"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:5173,REPLACE_WITH_DEV_WORKERS_URL"
+MAX_CACHE_TTL = "60"
+STATIC_PREFIX = "static/"
+ADMIN_PREFIX = "admin-preview/"
+ENABLE_BOT_PROTECTION = "false"

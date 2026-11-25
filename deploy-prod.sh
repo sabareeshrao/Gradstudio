@@ -1,9 +1,5 @@
-#!/bin/bash
-# ============================================
-# DEPLOY TO PRODUCTION (gradstudio.org)
-# ⚠️  WARNING: This updates the live site!
-# ============================================
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKER_DIR="$SCRIPT_DIR/worker"
@@ -11,81 +7,62 @@ STATIC_DIR="$SCRIPT_DIR/static"
 ADMIN_DIR="$SCRIPT_DIR/admin-preview"
 R2_BUCKET="learning-simulations"
 
-# Load environment variables from .env if present
-if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
+if [[ "${1:-}" != "--confirm-production" ]]; then
+  echo "Refusing production deployment: pass --confirm-production from the protected release workflow." >&2
+  exit 1
 fi
 
-echo "=========================================="
-echo "  ⚠️  DEPLOYING TO PRODUCTION"
-echo "  Target: gradstudio.org + workers.dev"
-echo "=========================================="
-echo ""
-
-# Bypass confirmation if "y" is piped
-if [ -t 0 ]; then
-    read -p "Are you sure you want to deploy to PRODUCTION? (y/N) " confirm
-else
-    confirm="y"
+CURRENT_SHA="$(git -C "$SCRIPT_DIR" rev-parse HEAD)"
+if [[ -z "${GRADSTUDIO_PRODUCTION_RELEASE_SHA:-}" || "$GRADSTUDIO_PRODUCTION_RELEASE_SHA" != "$CURRENT_SHA" ]]; then
+  echo "Refusing production deployment: GRADSTUDIO_PRODUCTION_RELEASE_SHA must equal $CURRENT_SHA." >&2
+  exit 1
 fi
 
-if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-  echo "Aborted."
-  exit 0
+if [[ -n "$(git -C "$SCRIPT_DIR" status --porcelain)" ]]; then
+  echo "Refusing production deployment from a dirty working tree." >&2
+  exit 1
 fi
 
-# Step 1: Upload static files to R2 (under static/ prefix)
-echo ""
-echo "[1/3] Uploading static files to R2 (Remote)..."
-for file_path in "$STATIC_DIR"/*; do
-  [ -e "$file_path" ] || continue
-  filename=$(basename "$file_path")
-  r2key="static/$filename"
-  
-  # Determine MIME type more robustly
-  content_type="application/octet-stream"
-  case "$filename" in
-    *.html) content_type="text/html" ;;
-    *.css)  content_type="text/css" ;;
-    *.js)   content_type="application/javascript" ;;
-    *.png)  content_type="image/png" ;;
-    *.jpg|*.jpeg) content_type="image/jpeg" ;;
-    *.ico)  content_type="image/x-icon" ;;
-    *.svg)  content_type="image/svg+xml" ;;
-    *.txt)  content_type="text/plain" ;;
-  esac
+case "${GRADSTUDIO_PRODUCTION_RELEASE_CLASS:-}" in
+  initial-cutover)
+    [[ "${GRADSTUDIO_INITIAL_CUTOVER_AUTHORIZED:-}" == "true" ]] || { echo "Initial cutover has not been explicitly authorized." >&2; exit 1; }
+    ;;
+  sensitive)
+    [[ "${GRADSTUDIO_SENSITIVE_CHANGE_APPROVED:-}" == "true" ]] || { echo "Sensitive production change lacks protected approval." >&2; exit 1; }
+    ;;
+  routine)
+    [[ "${GRADSTUDIO_PRODUCTION_CUTOVER_COMPLETE:-}" == "true" ]] || { echo "Routine automatic deployment is disabled until initial cutover completes." >&2; exit 1; }
+    ;;
+  *)
+    echo "GRADSTUDIO_PRODUCTION_RELEASE_CLASS must be initial-cutover, sensitive, or routine." >&2
+    exit 1
+    ;;
+esac
 
-  echo "  Uploading $filename -> r2://$R2_BUCKET/$r2key ($content_type)"
-  cd "$WORKER_DIR" && npx wrangler r2 object put "$R2_BUCKET/$r2key" --file "$file_path" --content-type "$content_type" --remote
-done
+upload_directory() {
+  local source_dir="$1"
+  local prefix="$2"
+  for file_path in "$source_dir"/*; do
+    [[ -f "$file_path" ]] || continue
+    local filename content_type
+    filename="$(basename "$file_path")"
+    content_type="application/octet-stream"
+    case "$filename" in
+      *.html) content_type="text/html" ;;
+      *.css) content_type="text/css" ;;
+      *.js) content_type="application/javascript" ;;
+      *.json) content_type="application/json" ;;
+      *.png) content_type="image/png" ;;
+      *.jpg|*.jpeg) content_type="image/jpeg" ;;
+      *.svg) content_type="image/svg+xml" ;;
+      *.ico) content_type="image/x-icon" ;;
+    esac
+    (cd "$WORKER_DIR" && npx wrangler r2 object put "$R2_BUCKET/$prefix/$filename" --file "$file_path" --content-type "$content_type" --remote)
+  done
+}
 
-# Step 2: Upload admin-preview to R2 (under admin-preview/ prefix)
-echo ""
-echo "[2/3] Uploading admin-preview to R2 (Remote)..."
-for file_path in "$ADMIN_DIR"/*; do
-  [ -e "$file_path" ] || continue
-  filename=$(basename "$file_path")
-  r2key="admin-preview/$filename"
-  
-  content_type="application/octet-stream"
-  case "$filename" in
-    *.html) content_type="text/html" ;;
-    *.css)  content_type="text/css" ;;
-    *.js)   content_type="application/javascript" ;;
-  esac
+upload_directory "$STATIC_DIR" "static"
+upload_directory "$ADMIN_DIR" "admin-preview"
+(cd "$WORKER_DIR" && npx wrangler deploy)
 
-  echo "  Uploading $filename -> r2://$R2_BUCKET/$r2key ($content_type)"
-  cd "$WORKER_DIR" && npx wrangler r2 object put "$R2_BUCKET/$r2key" --file "$file_path" --content-type "$content_type" --remote
-done
-
-echo ""
-echo "[3/3] Deploying worker to PRODUCTION..."
-cd "$WORKER_DIR" && npx wrangler deploy
-
-echo ""
-echo "=========================================="
-echo "  PRODUCTION DEPLOY COMPLETE"
-echo "  URLs: https://gradstudio.org"
-echo "        https://gradstudio.org/admin-preview"
-echo "        https://learning-platform-api.sabareeshrao.workers.dev"
-echo "=========================================="
+echo "Production deployment completed for $CURRENT_SHA."

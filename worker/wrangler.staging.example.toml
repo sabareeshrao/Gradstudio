@@ -1,0 +1,38 @@
+name = "gradstudio-app-staging"
+main = "src/index.js"
+compatibility_date = "2024-01-20"
+compatibility_flags = [ "nodejs_compat" ]
+workers_dev = true
+routes = []
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gradstudio-app-staging"
+database_id = "REPLACE_WITH_STAGING_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_STAGING_KV_ID"
+
+[[kv_namespaces]]
+binding = "REFRESH_TOKENS"
+id = "REPLACE_WITH_STAGING_REFRESH_TOKENS_KV_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "REPLACE_WITH_STAGING_RATE_LIMITS_KV_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "gradstudio-app-assets-staging"
+
+[vars]
+ENVIRONMENT = "staging"
+ENVIRONMENT_ISOLATED = "true"
+JWT_ISSUER = "gradstudio-staging"
+JWT_AUDIENCE = "gradstudio-api-staging"
+ALLOWED_ORIGINS = "REPLACE_WITH_STAGING_APP_URL"
+MAX_CACHE_TTL = "300"
+STATIC_PREFIX = "static/"
+ADMIN_PREFIX = "admin-preview/"
+ENABLE_BOT_PROTECTION = "true"
