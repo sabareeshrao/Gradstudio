@@ -206,6 +206,13 @@
         : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? DEV_API_BASE
             : 'https://api.gradstudio.org';
+    const GIT_CONTENT_STAGING_HOST = 'gradstudio-app-staging.gradstudio-non-production.workers.dev';
+    const gitContentPreviewRequested = new URLSearchParams(window.location.search).get('contentSource') === 'git';
+    const gitContentPreviewHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const USE_GIT_CONTENT_CATALOG = window.__GRADSTUDIO_UI_CONFIG__?.site?.featureFlags?.gitContentCatalogStaging === true && (
+        window.location.hostname === GIT_CONTENT_STAGING_HOST ||
+        (gitContentPreviewHost && gitContentPreviewRequested)
+    );
     const LEARN_CAROUSEL_STORAGE_KEY = "gradstudio_learn_carousels_dev";
     const USE_LOCAL_CAROUSEL_CACHE = new URLSearchParams(window.location.search).has("localCarousel");
     const ADMIN_REFRESH_STORAGE_KEY = "lp_admin_refresh";
@@ -286,6 +293,7 @@
     }
 
     async function hydrateCourseContent(course, forceRefresh = false) {
+        if (course?.fromGitContent) return;
         if (!course || (course._contentHydrated && !forceRefresh)) return;
         course._contentHydrated = true;
 
@@ -356,6 +364,42 @@
         activePage = 1;
     }
 
+    async function loadGitCatalogFromAPI() {
+        const { applicationModelToUiCatalog, loadApplicationCatalog } = await import('./modules/content-catalog-v1.mjs');
+        const model = await loadApplicationCatalog(API_BASE);
+        const normalized = applicationModelToUiCatalog(model);
+
+        applyCatalogData(normalized);
+        catalogStatus = normalized.state;
+        recordContentRelease(normalized);
+        if (!topics.includes(activeTopic)) activeTopic = 'All';
+        activePage = 1;
+    }
+
+    function recordContentRelease(catalog) {
+        const release = catalog?.release || null;
+        document.documentElement.dataset.contentState = catalog?.state || 'unavailable';
+        document.documentElement.dataset.contentRelease = release?.id || '';
+        document.documentElement.dataset.contentSourceCommit = release?.sourceCommit || '';
+        window.__GRADSTUDIO_CONTENT_RELEASE__ = Object.freeze({
+            state: catalog?.state || 'unavailable',
+            id: release?.id || null,
+            sourceCommit: release?.sourceCommit || null,
+            catalogDigest: release?.catalogDigest || null,
+            contentBaseUrl: release?.contentBaseUrl || null
+        });
+    }
+
+    async function loadConfiguredCatalog() {
+        if (USE_GIT_CONTENT_CATALOG) return loadGitCatalogFromAPI();
+        return loadCatalogFromAPI();
+    }
+
+    async function loadConfiguredCarousels() {
+        if (!USE_GIT_CONTENT_CATALOG) return loadCarouselsFromAPI();
+        applyCarouselData({ hero: [], featured: [], compact: [], blocks: [] });
+    }
+
     function loadCatalogFromCache() {
         const cached = readApiCache(CATALOG_API_CACHE_KEY);
         if (!cached || !Array.isArray(cached.courses) || !Array.isArray(cached.topics)) return false;
@@ -364,10 +408,10 @@
     }
 
     function applyCatalogData(data) {
-        topics = data.topics;
-        courses = data.courses;
+        topics = Array.isArray(data.topics) ? data.topics : ['All'];
+        courses = Array.isArray(data.courses) ? data.courses : [];
         courseLookup = new Map((data.allCourses || data.courses).map((course) => [course.id, course]));
-        catalogStatus = "ready";
+        catalogStatus = data.state || "ready";
     }
 
     function normalizeApiCatalog(categoryData, courseData) {
@@ -721,12 +765,12 @@
         clearApiCache();
         adminRefreshPromise = (async () => {
             try {
-                await loadCatalogFromAPI();
+                await loadConfiguredCatalog();
             } catch (err) {
                 console.warn("Live catalog refresh after admin update failed.", err);
             }
             try {
-                await loadCarouselsFromAPI();
+                await loadConfiguredCarousels();
             } catch (err) {
                 console.warn("Live carousel refresh after admin update failed.", err);
             }
@@ -3018,11 +3062,15 @@
         const grid = document.getElementById("courseGrid");
 
         if (!visibleCourses.length) {
-            const message = catalogStatus === "loading"
-                ? "Loading live courses..."
-                : catalogStatus === "error"
-                    ? "Live courses could not be loaded. Refresh to try again."
-                    : "No courses found";
+            const messages = {
+                loading: "Loading live courses...",
+                error: "Live courses could not be loaded. Refresh to try again.",
+                unconfigured: "GradStudio 2.0 content is not configured for this environment.",
+                unavailable: "GradStudio 2.0 content is temporarily unavailable. Refresh to try again.",
+                incompatible: "This GradStudio 2.0 content release is not compatible with the application.",
+                ready: "No GradStudio 2.0 courses have been published yet."
+            };
+            const message = messages[catalogStatus] || "No courses found";
             grid.innerHTML = `<div class="empty-state">${message}</div>`;
             return;
         }
@@ -3512,6 +3560,7 @@
         const activeSectionIndex = Math.max(0, sections.findIndex((section) => section.items.some((item) => item.index === safeIndex)));
         const frameTitle = `${course.title}: ${selectedLesson.title}`;
         const frameSource = getLessonFrameSource(course, selectedLesson, safeIndex);
+        const frameSandbox = course.fromGitContent ? "allow-scripts allow-forms" : "allow-scripts allow-forms allow-same-origin";
 
         player.innerHTML = `
             <div class="course-player-layout">
@@ -3579,7 +3628,8 @@
                             data-component-id="course.simulation-frame"
                             data-component-instance="${escapeHtml(selectedLesson.simulation_id || selectedLesson.id || `${course.id}-${safeIndex}`)}"
                             title="${escapeHtml(frameTitle)}"
-                            sandbox="allow-scripts allow-forms allow-same-origin"
+                            sandbox="${frameSandbox}"
+                            referrerpolicy="no-referrer"
                             ${frameSource.type === "src" ? `src="${escapeHtml(frameSource.value)}"` : `srcdoc="${escapeHtml(frameSource.value)}"`}
                         ></iframe>
                     </div>
@@ -4397,8 +4447,8 @@ img,svg,canvas,video{max-width:100%;max-height:100%;}
     initializeAuthState().catch((error) => console.warn("Auth state initialization failed.", error));
 
     async function initializeCatalog() {
-        const usedCatalogCache = loadCatalogFromCache();
-        const usedCarouselCache = loadCarouselsFromCache();
+        const usedCatalogCache = USE_GIT_CONTENT_CATALOG ? false : loadCatalogFromCache();
+        const usedCarouselCache = USE_GIT_CONTENT_CATALOG ? false : loadCarouselsFromCache();
         const usedAnyCache = usedCatalogCache || usedCarouselCache;
 
         render();
@@ -4410,13 +4460,13 @@ img,svg,canvas,video{max-width:100%;max-height:100%;}
         }
 
         try {
-            await loadCatalogFromAPI();
+            await loadConfiguredCatalog();
         } catch (err) {
             console.warn("Live catalog could not be loaded.", err);
             if (!courses.length) catalogStatus = "error";
         }
         try {
-            await loadCarouselsFromAPI();
+            await loadConfiguredCarousels();
         } catch (err) {
             console.warn("Live carousel data could not be loaded.", err);
         }

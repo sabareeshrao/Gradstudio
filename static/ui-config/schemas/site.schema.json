@@ -21,9 +21,10 @@
     "featureFlags": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["courseMenu", "heroFeature", "pinnedLearning", "homepageLayoutBlocks"],
+      "required": ["courseMenu", "gitContentCatalogStaging", "heroFeature", "pinnedLearning", "homepageLayoutBlocks"],
       "properties": {
         "courseMenu": { "type": "boolean" },
+        "gitContentCatalogStaging": { "type": "boolean" },
         "heroFeature": { "type": "boolean" },
         "pinnedLearning": { "type": "boolean" },
         "homepageLayoutBlocks": { "type": "boolean" }
