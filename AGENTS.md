@@ -27,6 +27,7 @@ The private `sabareeshrao/Gradstudio-2.0-Admin` repository owns requirements, im
 - `static/gradstudio-learn-admin.html` and `.js` — current catalog administration UI.
 - `static/admin-security.html` — operational security administration UI.
 - `static/admin-edit.html` and `static/Admin.html` — legacy/specialized admin surfaces; verify callers before editing.
+- `docs/admin/ownership-transition.md` — complete current admin screen/action ownership, Git-first transition, and archive/delete policy.
 - `static/learn-next.*` and `static/gradstudioapplelike.html` — prototypes/alternatives, not canonical production UI unless the tracker explicitly promotes them.
 - `worker/src/index.js` — application Worker routes and orchestration.
 - `worker/src/content/catalogAdapter.js` — fail-closed adapter for the independent GradStudio 2.0 catalog; it must never fall back to D1/R2 educational content.
@@ -39,6 +40,8 @@ The private `sabareeshrao/Gradstudio-2.0-Admin` repository owns requirements, im
 The complete UI ownership and selector registry is maintained in `docs/ui/component-inventory.md`. Update that inventory in the same commit whenever a component, stable ID, canonical path, route, or ownership boundary changes.
 
 The new content boundary and staged activation rules are documented in `docs/content-catalog-integration.md`. Preserve the explicit empty, unconfigured, unavailable, incompatible, and rolled-back states. Never hide these states by reading the legacy educational catalog.
+
+The administration transition is documented in `docs/admin/ownership-transition.md`. Educational administration is Git-first; users, authentication, payments, progress, analytics, moderation, and security remain application-owned. Do not add a browser GitHub credential or restore direct D1/R2 educational authoring.
 
 ## Change rules
 
