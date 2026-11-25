@@ -1,24 +1,26 @@
-// Staging-only interim access-token validation. For production, migrate to
-// Google Sign-In ID tokens with local signature and audience verification.
-export async function verifyStagingGoogleAccessToken(accessToken, clientId, fetcher = fetch) {
-  if (!clientId || !accessToken) throw new Error('Google staging authentication is not configured');
-  const url = new URL('https://oauth2.googleapis.com/tokeninfo');
-  url.searchParams.set('access_token', accessToken);
-  let claims;
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+const googleKeys = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'));
+
+export async function verifyStagingGoogleIdToken(token, clientId, keySet = googleKeys) {
+  if (!clientId || !token) throw new Error('Google staging authentication is not configured');
   try {
-    const response = await fetcher(url, { redirect: 'error', headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error('Rejected');
-    claims = await response.json();
+    const { payload } = await jwtVerify(token, keySet, {
+      algorithms: ['RS256'],
+      issuer: ['https://accounts.google.com', 'accounts.google.com'],
+      audience: clientId,
+      requiredClaims: ['exp', 'iat', 'sub', 'email', 'email_verified'],
+      maxTokenAge: '1h',
+      clockTolerance: 5
+    });
+    if (payload.aud !== clientId || (payload.azp !== undefined && payload.azp !== clientId) ||
+        payload.email_verified !== true || typeof payload.sub !== 'string' || !payload.sub.trim() ||
+        typeof payload.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+      throw new Error('Invalid identity claims');
+    }
+    const email = payload.email.trim().toLowerCase();
+    return { sub: payload.sub, email, displayName: String(payload.name || payload.given_name || email.split('@')[0]).trim().slice(0, 100) };
   } catch {
-    // Do not expose errors containing a Google access token or request URL.
-    throw new Error('Google token verification failed');
+    throw new Error('Google ID token verification failed');
   }
-  if (!claims || claims.aud !== clientId || claims.azp !== clientId ||
-      !Number.isFinite(Number(claims.exp)) || Number(claims.exp) <= Date.now() / 1000 ||
-      (claims.email_verified !== true && claims.email_verified !== 'true') ||
-      typeof claims.sub !== 'string' || !claims.sub.trim() ||
-      typeof claims.email !== 'string' || !claims.email.trim()) {
-    throw new Error('Google token verification failed');
-  }
-  return { sub: claims.sub, email: claims.email.trim().toLowerCase() };
 }
