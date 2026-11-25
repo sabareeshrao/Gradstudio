@@ -26,6 +26,7 @@ The private `sabareeshrao/Gradstudio-2.0-Admin` repository owns requirements, im
 - `static/login.html` — separate login surface.
 - `static/gradstudio-learn-admin.html` and `.js` — current catalog administration UI.
 - `static/admin-security.html` — operational security administration UI.
+- `static/admin-content-status.html` and `.mjs` — read-only Git-derived content/release evidence; never add D1/R2/Git mutation controls here.
 - `static/admin-edit.html` and `static/Admin.html` — legacy/specialized admin surfaces; verify callers before editing.
 - `docs/admin/ownership-transition.md` — complete current admin screen/action ownership, Git-first transition, and archive/delete policy.
 - `static/learn-next.*` and `static/gradstudioapplelike.html` — prototypes/alternatives, not canonical production UI unless the tracker explicitly promotes them.

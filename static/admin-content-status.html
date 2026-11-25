@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GradStudio Git Content Status</title>
+  <style>
+    :root{color-scheme:light;--bg:#f5f7fb;--surface:#fff;--text:#172033;--muted:#637083;--border:#dce2ea;--accent:#2563eb;--ok:#087443;--warn:#9a5a00;--bad:#b42318;--radius:14px;--shadow:0 12px 36px rgba(20,32,54,.08)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--accent)}button,a.action{border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);padding:9px 13px;font:inherit;font-weight:650;cursor:pointer;text-decoration:none}button:hover,a.action:hover{border-color:var(--accent)}header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 24px;background:rgba(255,255,255,.94);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}header h1{margin:0;font-size:20px}header p{margin:2px 0 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}main{max-width:1180px;margin:0 auto;padding:28px 22px 64px}.notice{margin-bottom:18px;padding:13px 16px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e3a8a}.state{display:flex;align-items:center;gap:10px;margin:0 0 18px;padding:15px 17px;border-radius:10px;background:var(--surface);border:1px solid var(--border)}.state[data-state="ready"]{border-color:#99d6b9;color:var(--ok)}.state[data-state="unavailable"],.state[data-state="incompatible"]{border-color:#f2b8b5;color:var(--bad)}.state[data-state="unconfigured"]{border-color:#f3d39a;color:var(--warn)}.dot{width:10px;height:10px;border-radius:50%;background:currentColor}.evidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}.card{min-width:0;padding:17px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}.card h2,.card h3{margin:0 0 8px}.label{display:block;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.value{display:block;margin-top:5px;font-weight:720;overflow-wrap:anywhere}.catalog{display:grid;gap:14px}.category{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}.category>h2{margin:0 0 14px;font-size:18px}.course{margin-top:12px;padding:14px;border:1px solid var(--border);border-radius:10px;background:#fbfcfe}.course h3{margin:0 0 9px;font-size:16px}.section{margin:10px 0 0;padding-left:14px;border-left:3px solid #dbeafe}.section h4{margin:0 0 6px}.simulation-list{margin:0;padding-left:20px}.simulation-list li{margin:4px 0}.pill{display:inline-block;margin-left:7px;padding:1px 7px;border-radius:999px;background:#eef2ff;color:#3949ab;font-size:11px}.empty{padding:36px;text-align:center;color:var(--muted)}code{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px}@media(max-width:900px){.evidence{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){header{position:static;align-items:flex-start;flex-direction:column;padding:15px}.evidence{grid-template-columns:1fr}main{padding:20px 14px 48px}.actions{width:100%}.actions>*{flex:1;text-align:center}}
+  </style>
+</head>
+<body data-component-id="admin.content-status">
+  <header>
+    <div><h1>Git-backed content status</h1><p>Read-only release evidence for the fresh GradStudio 2.0 catalog</p></div>
+    <nav class="actions" aria-label="Administration links">
+      <a class="action" href="/gradstudio-learn-admin.html">Legacy editor</a>
+      <button id="refreshStatus" type="button">Refresh status</button>
+    </nav>
+  </header>
+  <main>
+    <div class="notice"><strong>Read only.</strong> Educational changes belong in <code>sabareeshrao/Gradstudio-2.0</code> through the validated Git workflow. This screen never writes D1, R2, or GitHub.</div>
+    <section id="catalogState" class="state" data-state="loading" aria-live="polite"><span class="dot" aria-hidden="true"></span><strong>Checking administrator access and content status…</strong></section>
+    <section class="evidence" aria-label="Release evidence">
+      <article class="card"><span class="label">Source commit</span><a id="sourceCommit" class="value" href="#">—</a></article>
+      <article class="card"><span class="label">Active release</span><span id="activeRelease" class="value">—</span></article>
+      <article class="card"><span class="label">Catalog digest</span><span id="catalogDigest" class="value">—</span></article>
+      <article class="card"><span class="label">Deployment validation</span><span id="deploymentStatus" class="value">Pending</span></article>
+    </section>
+    <section class="card" aria-labelledby="catalogHeading">
+      <h2 id="catalogHeading">Published catalog</h2>
+      <p id="catalogCounts" class="label">No catalog loaded</p>
+      <div id="catalogTree" class="catalog"><div class="empty">Waiting for the Git-derived catalog.</div></div>
+    </section>
+  </main>
+  <script type="module" src="/admin-content-status.mjs"></script>
+</body>
+</html>

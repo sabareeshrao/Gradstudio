@@ -37,7 +37,7 @@ export function catalogToApplicationModel(catalog) {
   })).sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
   return {
     state: READY,
-    release: { id: catalog.release_id, sourceCommit: catalog.source.commit, catalogDigest: catalog.catalog_sha256 },
+    release: { id: catalog.release_id, sourceCommit: catalog.source.commit, catalogDigest: catalog.catalog_sha256, contentBaseUrl: catalog.content_base_url },
     categories,
     courses
   };
