@@ -79,6 +79,11 @@ test('application staging workflows are scoped, gated, pinned, and production-fr
   assert.match(deployment, /if: needs\.staging-gate\.outputs\.enabled == 'true'/);
   assert.match(deployment, /APP_SOURCE_COMMIT: \$\{\{ github\.sha \}\}/);
   assert.match(deployment, /npx wrangler deploy --config wrangler\.staging\.toml/);
+  assert.ok(
+    [...deployment.matchAll(/git ls-remote --exit-code origin refs\/heads\/main/g)].length >= 2,
+    'application staging must reject stale commits both before preflight and immediately before deployment'
+  );
+  assert.match(deployment, /remote_main.*GITHUB_SHA/s);
 
   const rollback = fs.readFileSync(path.join(root, '.github/workflows/application-staging-rollback.yml'), 'utf8');
   assert.match(rollback, /needs: staging-gate/);

@@ -103,11 +103,25 @@ jobs:
       - name: Install locked Worker deployment tooling
         working-directory: worker
         run: npm ci
+      - name: Verify this commit is still remote main before deployment
+        run: |
+          remote_main="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
+          if [ "$remote_main" != "$GITHUB_SHA" ]; then
+            echo "Refusing stale application staging deployment: remote main is $remote_main, workflow commit is $GITHUB_SHA."
+            exit 1
+          fi
       - name: Verify independent content staging before application deployment
         run: |
           node -e "const origin=new URL(process.env.CONTENT_STAGING_ORIGIN);if(origin.protocol!=='https:'||origin.origin!==process.env.CONTENT_STAGING_ORIGIN)throw new Error('CONTENT_STAGING_ORIGIN must be an exact HTTPS origin');const response=await fetch(origin+'/catalog/v1/active.json');if(!response.ok)throw new Error('Content staging catalog is not ready: '+response.status);const catalog=await response.json();if(catalog.contract!=='gradstudio-content-catalog/v1')throw new Error('Content staging contract is incompatible');"
       - name: Materialize validated isolated staging configuration
         run: node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
+      - name: Reconfirm this commit is remote main immediately before deployment
+        run: |
+          remote_main="$(git ls-remote --exit-code origin refs/heads/main | cut -f1)"
+          if [ "$remote_main" != "$GITHUB_SHA" ]; then
+            echo "Refusing overtaken application staging deployment: remote main is $remote_main, workflow commit is $GITHUB_SHA."
+            exit 1
+          fi
       - name: Deploy the existing isolated application staging Worker
         working-directory: worker
         run: npx wrangler deploy --config wrangler.staging.toml --message "GitHub ${GITHUB_SHA}"
