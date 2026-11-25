@@ -21,7 +21,7 @@ test("runtime configuration round-trips as a deeply frozen data object", () => {
   vm.runInNewContext(source, context, { filename: "ui-config.runtime.js" });
   const config = context.window.__GRADSTUDIO_UI_CONFIG__;
   assert.equal(config.schemaVersion, 1);
-  assert.equal(config.home.hero.heading, "Clearer concepts. Faster learning.");
+  assert.equal(config.home.hero.heading, JSON.parse(fs.readFileSync(path.join(root, "static/ui-config/home.json"), "utf8")).hero.heading);
   assert.equal(Object.isFrozen(config), true);
   assert.equal(Object.isFrozen(config.theme.colors), true);
 });

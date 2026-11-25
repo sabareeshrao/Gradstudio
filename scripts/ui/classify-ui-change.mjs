@@ -57,7 +57,7 @@ function changedPathsFromGit(base, head) {
   if (/^0+$/.test(base)) {
     return lines(execFileSync("git", ["diff-tree", "--no-commit-id", "--name-only", "-r", head], { encoding: "utf8" }));
   }
-  return lines(execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRDT", base, head], { encoding: "utf8" }));
+  return lines(execFileSync("git", ["diff", "--name-only", base, head], { encoding: "utf8" }));
 }
 
 function validateRevision(value) {

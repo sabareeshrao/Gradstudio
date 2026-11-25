@@ -40,3 +40,5 @@ Use this playbook to translate a natural-language request into the smallest safe
 - **Responsive:** token changes must pass desktop/mobile/tablet views. New breakpoint behavior is code because CSS media queries are not executable configuration.
 
 Routine changes become eligible for automatic production deployment only after the isolated pipeline and initial production cutover are explicitly authorized. Until then, validation and local preview do not modify production.
+
+For an existing homepage heading, hero action label or footer description/copyright change, use only the registered JSON and regenerated runtime; the semantic staging copy lane selects targeted browser validation automatically. Do not manually refresh structural screenshots for these text-only edits. All other operations retain their full gates. See [change classification](change-classification.md).
