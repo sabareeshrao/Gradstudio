@@ -2240,7 +2240,6 @@
                         <h1 id="infoPageTitle">About GradStudio</h1>
                         <h2>Hi, I&rsquo;m Sabareesh. I built GradStudio to make technical learning clearer, more practical, and easier to follow.</h2>
                         <p>I&rsquo;m a full-stack developer focused on AI, cloud, and learning systems. GradStudio is where I turn technical topics into structured lessons that explain the workflow behind the result.</p>
-                        <a class="about-github-link" href="https://github.com/sabs-27" target="_blank" rel="noopener noreferrer">View GitHub: sabs-27</a>
                     </div>
                     <aside class="about-standard-photo" aria-label="Sabareesh profile">
                         <div class="about-standard-image-frame">
@@ -2285,8 +2284,6 @@
                 ],
                 profileImage: "https://raw.githubusercontent.com/sabs-27/images/main/NEWG.jpg",
                 profileAlt: "Sabareesh portrait",
-                profileLink: "https://github.com/sabs-27",
-                profileLinkLabel: "GitHub: sabs-27",
                 sections: []
             },
             contact: {
@@ -2371,7 +2368,6 @@
                 <figcaption>
                     <strong>Sabareesh</strong>
                     <span>Full-stack builder focused on AI, LLM, NLP, and cloud learning systems.</span>
-                    ${page.profileLink ? `<a class="about-profile-link" href="${escapeHtml(page.profileLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(page.profileLinkLabel || page.profileLink)}</a>` : ""}
                 </figcaption>
             </figure>
         ` : "";
