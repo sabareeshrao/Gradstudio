@@ -22,7 +22,7 @@ import { withErrorHandling } from './middleware/errorWrapper.js';
 import { checkBotProtection, checkHoneypot } from './middleware/botProtection.js';
 import { logSecurityEvent } from './utils/securityLogger.js';
 import { handleContentCatalogRequest } from './content/catalogAdapter.js';
-import { verifyStagingGoogleAccessToken } from './utils/stagingGoogleOAuth.js';
+import { verifyStagingGoogleIdToken } from './utils/stagingGoogleOAuth.js';
 
 import {
   handleGetMetricsOverview,
@@ -388,6 +388,11 @@ const applicationWorker = {
         // 13.1 Auth - Google token
         // POST /api/auth/google/token
         if (path === '/api/auth/google/token' && request.method === 'POST') {
+          if (env.ENVIRONMENT === 'staging' && (
+            request.headers.get('Origin') !== env.ALLOWED_ORIGINS ||
+            request.headers.get('Origin') !== url.origin ||
+            !(request.headers.get('Content-Type') || '').toLowerCase().startsWith('application/json')
+          )) return jsonResponse({ error: 'Google sign-in request origin is invalid' }, 403, corsHeaders);
           const data = await request.json();
           const ip = getClientIp(request);
           return await handleGoogleTokenAuth(data, env, corsHeaders, ip);
@@ -1499,6 +1504,7 @@ async function serveStaticFromAssets(request, env, corsHeaders) {
       "form-action 'self'",
       "frame-ancestors 'none'"
     ].join('; '));
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     headers.set('Pragma', 'no-cache');
     headers.set('Expires', '0');
@@ -4015,17 +4021,14 @@ async function handleAuthLogoutAll(request, env, corsHeaders) {
 }
 
 async function handleGoogleTokenAuth(data, env, corsHeaders, ip = 'unknown') {
-  const accessToken = String(data?.access_token || '').trim();
-  if (!accessToken) return jsonResponse({ error: 'Google access token is required' }, 400, corsHeaders);
+  const staging = env.ENVIRONMENT === 'staging';
+  const token = String((staging ? data?.id_token : data?.access_token) || '').trim();
+  if (!token) return jsonResponse({ error: staging ? 'Google ID token is required' : 'Google access token is required' }, 400, corsHeaders);
 
   try {
-    const stagingToken = env.ENVIRONMENT === 'staging'
-      ? await verifyStagingGoogleAccessToken(accessToken, env.GOOGLE_OAUTH_CLIENT_ID)
-      : null;
-    const profile = await fetchGoogleProfile(accessToken);
-    if (stagingToken && (profile.sub !== stagingToken.sub || profile.email !== stagingToken.email)) {
-      throw new Error('Google identity verification failed');
-    }
+    const profile = staging
+      ? await verifyStagingGoogleIdToken(token, env.GOOGLE_OAUTH_CLIENT_ID)
+      : await fetchGoogleProfile(token);
     const result = await completeGoogleAuth(profile, env, ip);
     return jsonResponse(result.body, 200, {
       ...corsHeaders,
