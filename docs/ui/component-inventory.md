@@ -29,6 +29,8 @@ This registry tells future ChatGPT/Codex sessions where a visible feature lives 
 - `static/ui-config/apply-config.js` applies validated values through safe DOM/CSS APIs before the canonical application script starts.
 - `docs/ui/configuration-contract.md` defines lifecycle, assets and the code escape hatch.
 - `docs/ui/prompt-operation-playbook.md` maps founder prompts to components, files, risk and tests.
+- `docs/ui/change-classification.md` defines fail-closed routine, structural and high-risk path classification.
+- `npm run ui:build:inventory` packages this inventory, the machine registry, agent instructions and policy documents with hashes, counts, revision and a content digest for CI review.
 
 ## Stable public component registry
 

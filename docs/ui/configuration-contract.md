@@ -69,9 +69,12 @@ Authentication, authorization, payments, operational data, APIs, schemas, Cloudf
 npm ci
 npm run ui:validate
 npm run ui:test:browser
+npm run ui:build:inventory
 ```
 
 The compiler generates the runtime bundle and preview byte-for-byte. Integrity checks require all registry paths and hooks, exact inventory coverage, unique static IDs, valid local assets and the correct script order. Browser tests exercise canonical desktop/mobile routes against local synthetic fallback data with live APIs blocked.
+
+Pull-request CI also emits a fail-closed path classification and hashed component-inventory artifact. Routine classification is only a candidate signal; it does not authorize deployment before the protected pipeline and initial production cutover are separately approved.
 
 The initial configuration values reproduce the existing canonical copy, order, colors and layout. Any intentional visual change requires a founder request and refreshed approved screenshots.
 

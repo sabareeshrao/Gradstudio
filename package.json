@@ -5,6 +5,8 @@
   "scripts": {
     "ui:compile": "node scripts/ui/compile-ui-config.mjs",
     "ui:compile:check": "node scripts/ui/compile-ui-config.mjs --check",
+    "ui:classify": "node scripts/ui/classify-ui-change.mjs",
+    "ui:build:inventory": "node scripts/ui/build-component-inventory.mjs",
     "ui:build:preview": "node scripts/ui/build-preview-artifact.mjs",
     "ui:check": "node scripts/ui/check-ui-integrity.mjs",
     "ui:test": "node --test tests/ui/*.test.mjs",
