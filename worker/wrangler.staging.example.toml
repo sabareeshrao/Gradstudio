@@ -5,6 +5,11 @@ compatibility_flags = [ "nodejs_compat" ]
 workers_dev = true
 routes = []
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+persist = true
+
 [assets]
 directory = "../static"
 binding = "ASSETS"
