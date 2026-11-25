@@ -35,6 +35,19 @@ jobs:
         run: |
           node scripts/validate-environment-config.mjs worker/wrangler.dev.example.toml dev --example
           node scripts/validate-environment-config.mjs worker/wrangler.staging.example.toml staging --example
+      - name: Materialize and dry-run the isolated staging Static Assets bundle
+        env:
+          APP_STAGING_D1_DATABASE_ID: 11111111-1111-4111-8111-111111111111
+          APP_STAGING_KV_ID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          APP_STAGING_REFRESH_TOKENS_KV_ID: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          APP_STAGING_RATE_LIMITS_KV_ID: cccccccccccccccccccccccccccccccc
+          APPLICATION_STAGING_ORIGIN: https://gradstudio-app-staging.example.workers.dev
+          CONTENT_STAGING_ORIGIN: https://gradstudio-content-staging.example.workers.dev
+          APP_SOURCE_COMMIT: "0000000000000000000000000000000000000000"
+        run: |
+          node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
+          cd worker
+          npx wrangler deploy --config wrangler.staging.toml --dry-run --outdir ../dist/application-staging-dry-run
       - name: Audit runtime dependencies
         working-directory: worker
         run: npm audit --audit-level=high

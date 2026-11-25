@@ -46,7 +46,10 @@ test('pull-request validation has read-only permissions and no secret references
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/security-ci.yml'), 'utf8');
   assert.match(workflow, /permissions:\s*\n\s*contents:\s*read/);
   assert.doesNotMatch(workflow, /\$\{\{\s*secrets\./);
-  assert.doesNotMatch(workflow, /wrangler\s+deploy|r2\s+object\s+put/);
+  assert.doesNotMatch(workflow, /r2\s+object\s+put/);
+  for (const line of workflow.split(/\r?\n/).filter(value => /wrangler\s+deploy/.test(value))) {
+    assert.match(line, /--dry-run/, 'pull-request validation may bundle but must never deploy');
+  }
 });
 
 test('security workflow actions are pinned to immutable revisions', () => {
@@ -56,4 +59,38 @@ test('security workflow actions are pinned to immutable revisions', () => {
   for (const [, action, revision] of actions) {
     assert.match(revision, /^[a-f0-9]{40}$/, `${action} must use an immutable 40-character commit SHA`);
   }
+});
+
+test('application staging workflows are scoped, gated, pinned, and production-free', () => {
+  for (const filename of ['application-staging.yml', 'application-staging-rollback.yml']) {
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows', filename), 'utf8');
+    assert.match(workflow, /environment: staging/);
+    assert.match(workflow, /CLOUDFLARE_STAGING_ENABLED/);
+    assert.doesNotMatch(workflow, /gradstudio\.org|api\.gradstudio\.org|learning-simulations/);
+    const actions = [...workflow.matchAll(/uses:\s*([^@\s]+)@([^\s#]+)/g)];
+    assert.ok(actions.length >= 2, `${filename} must pin its actions`);
+    for (const [, action, revision] of actions) {
+      assert.match(revision, /^[a-f0-9]{40}$/, `${action} in ${filename} must use an immutable commit SHA`);
+    }
+  }
+
+  const deployment = fs.readFileSync(path.join(root, '.github/workflows/application-staging.yml'), 'utf8');
+  assert.match(deployment, /needs: \[staging-gate, validate\]/);
+  assert.match(deployment, /if: needs\.staging-gate\.outputs\.enabled == 'true'/);
+  assert.match(deployment, /APP_SOURCE_COMMIT: \$\{\{ github\.sha \}\}/);
+  assert.match(deployment, /npx wrangler deploy --config wrangler\.staging\.toml/);
+  assert.ok(
+    [...deployment.matchAll(/git ls-remote --exit-code origin refs\/heads\/main/g)].length >= 2,
+    'application staging must reject stale commits both before preflight and immediately before deployment'
+  );
+  assert.match(deployment, /remote_main.*GITHUB_SHA/s);
+  assert.match(deployment, /id: smoke[\s\S]*continue-on-error: true/);
+  assert.match(deployment, /steps\.smoke\.outcome == 'failure'/);
+  assert.match(deployment, /npx wrangler rollback --name gradstudio-app-staging --message "Automatic staging rollback/);
+  assert.match(deployment, /Automatic application staging rollback did not restore a healthy Worker/);
+
+  const rollback = fs.readFileSync(path.join(root, '.github/workflows/application-staging-rollback.yml'), 'utf8');
+  assert.match(rollback, /needs: staging-gate/);
+  assert.match(rollback, /if: needs\.staging-gate\.outputs\.enabled == 'true'/);
+  assert.match(rollback, /npx wrangler rollback "\$TARGET_VERSION_ID" --name gradstudio-app-staging/);
 });
