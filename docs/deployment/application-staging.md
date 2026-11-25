@@ -65,6 +65,12 @@ deployment it verifies:
 - legacy educational editor pages redirect to the read-only Git release status;
 - the independent content adapter reports `ready`.
 
+If this post-deployment smoke verification fails, the serialized workflow uses
+Wrangler's non-interactive rollback to restore the version deployed immediately
+before the failed release, verifies that the restored Worker is healthy, and
+still fails the workflow so the rejected release cannot be reported as staged.
+The automatic rollback does not alter D1 or KV data.
+
 Routine validated commits to `main` can deploy automatically after the initial
 staging authorization. UI and content workflows remain independent.
 

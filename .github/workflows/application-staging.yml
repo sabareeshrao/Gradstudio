@@ -125,7 +125,24 @@ jobs:
       - name: Deploy the existing isolated application staging Worker
         working-directory: worker
         run: npx wrangler deploy --config wrangler.staging.toml --message "GitHub ${GITHUB_SHA}"
-      - name: Verify application revision, Git content boundary, and Static Assets
+      - id: smoke
+        name: Verify application revision, Git content boundary, and Static Assets
+        continue-on-error: true
         run: |
           node -e "const origin=new URL(process.env.APPLICATION_STAGING_ORIGIN);for(let attempt=0;attempt<12;attempt++){try{const health=await fetch(origin+'/api/health',{headers:{Accept:'application/json'}});const body=await health.json();if(health.ok&&body.environment==='staging'&&body.content_source==='git'&&body.source_commit===process.env.APP_SOURCE_COMMIT){const root=await fetch(origin+'/');if(!root.ok)throw new Error('Static application shell unavailable');const legacy=await fetch(origin+'/api/courses');if(legacy.status!==404)throw new Error('Legacy educational catalog did not fail closed');const editor=await fetch(origin+'/gradstudio-learn-admin.html',{redirect:'manual'});if(editor.status!==302||new URL(editor.headers.get('location')).pathname!=='/admin-content-status.html')throw new Error('Legacy editor did not redirect to Git status');const catalog=await fetch(origin+'/api/content/v1/catalog');const catalogBody=await catalog.json();if(!catalog.ok||catalogBody.state!=='ready')throw new Error('Git catalog adapter is not ready');process.exit(0)}}catch(error){if(attempt===11)throw error}await new Promise(resolve=>setTimeout(resolve,5000))}throw new Error('Application staging did not become healthy');"
+      - id: automatic-rollback
+        name: Roll back the isolated Worker after a failed smoke test
+        if: ${{ always() && steps.smoke.outcome == 'failure' }}
+        continue-on-error: true
+        working-directory: worker
+        run: npx wrangler rollback --name gradstudio-app-staging --message "Automatic staging rollback after failed smoke ${GITHUB_RUN_ID}"
+      - name: Verify the automatically restored staging deployment
+        if: ${{ always() && steps.smoke.outcome == 'failure' }}
+        run: |
+          node -e "const origin=new URL(process.env.APPLICATION_STAGING_ORIGIN);for(let attempt=0;attempt<12;attempt++){try{const health=await fetch(origin+'/api/health',{headers:{Accept:'application/json'}});const body=await health.json();if(health.ok&&body.environment==='staging'&&body.content_source==='git'){const root=await fetch(origin+'/');if(root.ok)process.exit(0)}}catch(error){if(attempt===11)throw error}await new Promise(resolve=>setTimeout(resolve,5000))}throw new Error('Automatic application staging rollback did not restore a healthy Worker');"
+      - name: Fail the release after automatic rollback
+        if: ${{ always() && steps.smoke.outcome == 'failure' }}
+        run: |
+          echo "Application staging smoke verification failed; automatic rollback was attempted."
+          exit 1
 

@@ -84,6 +84,10 @@ test('application staging workflows are scoped, gated, pinned, and production-fr
     'application staging must reject stale commits both before preflight and immediately before deployment'
   );
   assert.match(deployment, /remote_main.*GITHUB_SHA/s);
+  assert.match(deployment, /id: smoke[\s\S]*continue-on-error: true/);
+  assert.match(deployment, /steps\.smoke\.outcome == 'failure'/);
+  assert.match(deployment, /npx wrangler rollback --name gradstudio-app-staging --message "Automatic staging rollback/);
+  assert.match(deployment, /Automatic application staging rollback did not restore a healthy Worker/);
 
   const rollback = fs.readFileSync(path.join(root, '.github/workflows/application-staging-rollback.yml'), 'utf8');
   assert.match(rollback, /needs: staging-gate/);
