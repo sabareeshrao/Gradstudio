@@ -39,6 +39,19 @@ for (const asset of collectLocalAssets(html)) {
   if (!fs.existsSync(target)) fail(`canonical HTML references missing local asset ${asset}`);
 }
 
+for (const asset of collectStylesheetAssets(css)) {
+  const target = path.join(staticRoot, asset);
+  if (!fs.existsSync(target)) fail(`canonical stylesheet references missing local asset ${asset}`);
+}
+
+for (const license of ["fonts/INTER-OFL.txt", "fonts/JETBRAINS-MONO-OFL.txt"]) {
+  if (!fs.existsSync(path.join(staticRoot, license))) fail(`bundled font is missing license ${license}`);
+}
+
+if (/fonts\.(?:googleapis|gstatic)\.com/i.test(html)) {
+  fail("canonical shell must not depend on remote Google font delivery");
+}
+
 for (const prototype of ["learn-next.html", "learn-next.js", "gradstudioapplelike.html"]) {
   if (html.includes(prototype)) fail(`canonical shell imports prototype ${prototype}`);
 }
@@ -76,7 +89,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`UI integrity passed: ${Object.keys(registry.components).length} components, ${ids.length} unique static IDs, ${collectLocalAssets(html).length} local assets.`);
+console.log(`UI integrity passed: ${Object.keys(registry.components).length} components, ${ids.length} unique static IDs, ${collectLocalAssets(html).length + collectStylesheetAssets(css).length} local assets.`);
 
 function read(relative) {
   return fs.readFileSync(path.join(root, relative), "utf8");
@@ -98,7 +111,17 @@ function collectLocalAssets(source) {
   const results = [];
   for (const match of source.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
     const value = match[1].split("?")[0];
-    if (!value || value.startsWith("#") || value.startsWith("/") || /^[a-z]+:/i.test(value)) continue;
+    if (!value || value.startsWith("#") || value.startsWith("%23") || value.startsWith("/") || /^[a-z]+:/i.test(value)) continue;
+    results.push(value);
+  }
+  return [...new Set(results)];
+}
+
+function collectStylesheetAssets(source) {
+  const results = [];
+  for (const match of source.matchAll(/\burl\(["']?([^"')]+)["']?\)/g)) {
+    const value = match[1].split("?")[0];
+    if (!value || value.startsWith("#") || value.startsWith("%23") || value.startsWith("/") || /^[a-z]+:/i.test(value)) continue;
     results.push(value);
   }
   return [...new Set(results)];

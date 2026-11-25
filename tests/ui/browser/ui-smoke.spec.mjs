@@ -96,19 +96,27 @@ test("canonical home visual baseline", async ({ page }) => {
   await expect(page).toHaveScreenshot("canonical-home.png", { fullPage: true });
 });
 
-test("canonical route component baselines", async ({ page }) => {
+test("information route visual baseline", async ({ page }) => {
   await page.goto("/?demoFallback=1");
-
   await page.getByRole("link", { name: "About" }).first().click();
   await expect(page.locator("#infoPage")).toHaveScreenshot("info-about.png");
+});
 
+test("authentication route visual baseline", async ({ page }) => {
+  await page.goto("/?demoFallback=1");
   await page.locator("[data-auth-open='signup']").first().click();
   await expect(page.locator("#authPage")).toHaveScreenshot("auth-signup.png");
+});
 
-  await page.locator("[data-nav-home]").first().click();
+test("course detail visual baseline", async ({ page }) => {
+  await page.goto("/?demoFallback=1");
   await page.locator("[data-component-id='catalog.course-card']").first().click();
   await expect(page.locator("[data-component-id='course.detail']")).toHaveScreenshot("course-detail.png");
+});
 
+test("course player visual baseline", async ({ page }) => {
+  await page.goto("/?demoFallback=1");
+  await page.locator("[data-component-id='catalog.course-card']").first().click();
   await page.locator("[data-start-learning]").click();
   await expect(page.locator("[data-component-id='course.player']")).toHaveScreenshot("course-player.png");
 });
