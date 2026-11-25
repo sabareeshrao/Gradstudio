@@ -48,6 +48,15 @@ jobs:
         run: npx playwright install --with-deps chrome
       - name: Run desktop and mobile browser tests
         run: npm run ui:test:browser
+      - name: Build revision-labeled UI preview artifact
+        run: npm run ui:build:preview
+      - name: Upload UI preview artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ui-preview-${{ github.sha }}
+          path: dist/ui-preview/
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload browser diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v6

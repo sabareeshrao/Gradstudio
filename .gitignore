@@ -63,4 +63,5 @@ course-detail-check.png
 server.err.txt
 server.out.txt
 test-results/
+dist/
 USELESS/
