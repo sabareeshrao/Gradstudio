@@ -8,6 +8,8 @@
     let activePage = 1;
     let query = "";
     let pinnedItems = getAuthToken() ? loadPinnedItems() : [];
+    const useStagingGoogleIdToken = window.location.origin === "https://gradstudio-app-staging.gradstudio-non-production.workers.dev";
+    let googleIdInitialized = false;
     let googleTokenClient = null;
     let pendingGoogleAuthMode = "signin";
     let pinSyncTimer = 0;
@@ -1987,6 +1989,7 @@
         authPage.innerHTML = buildAuthPage(normalizedMode);
         bindAuthPage(authPage, normalizedMode);
         authPage.hidden = false;
+        if (useStagingGoogleIdToken) renderStagingGoogleButton(authPage, normalizedMode);
         if (infoPage) infoPage.hidden = true;
         if (detail) detail.hidden = true;
         if (player) player.hidden = true;
@@ -2042,7 +2045,7 @@
                         </div>
                         <button class="auth-submit" type="submit">${isSignup ? "Sign up" : "Sign in"}</button>
                         <div class="auth-divider"><span>or</span></div>
-                        <button class="auth-google" type="button" data-google-auth="${mode}">${googleIconSvg()}<span>${isSignup ? "Sign up with Google" : "Continue with Google"}</span></button>
+                        ${useStagingGoogleIdToken ? `<div data-google-id-button aria-label="Google sign-in" style="display:flex;justify-content:center;min-height:40px"></div>` : `<button class="auth-google" type="button" data-google-auth="${mode}">${googleIconSvg()}<span>${isSignup ? "Sign up with Google" : "Continue with Google"}</span></button>`}
                         <p class="auth-message" data-auth-message>${isSignup ? "Already have an account? Use the Sign in tab." : "New here? Use the Sign up tab."}</p>
                     </form>
                 </aside>
@@ -2120,6 +2123,35 @@
         }
     }
 
+    function renderStagingGoogleButton(authPage, mode, attempt = 0) {
+        const host = authPage.querySelector("[data-google-id-button]");
+        if (!host || !host.isConnected || authPage.hidden) return;
+        const api = window.google?.accounts?.id;
+        if (!api) {
+            if (attempt < 40) setTimeout(() => {
+                if (host.isConnected) renderStagingGoogleButton(authPage, mode, attempt + 1);
+            }, 250);
+            else host.textContent = "Google sign-in could not load. Refresh and try again.";
+            return;
+        }
+        pendingGoogleAuthMode = mode;
+        if (!googleIdInitialized) {
+            api.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                ux_mode: "popup",
+                auto_select: false,
+                callback: handleGoogleTokenResponse
+            });
+            googleIdInitialized = true;
+        }
+        api.renderButton(host, {
+            theme: "outline",
+            size: "large",
+            text: mode === "signup" ? "signup_with" : "continue_with",
+            width: Math.min(400, Math.max(200, Math.floor(host.clientWidth || 300)))
+        });
+    }
+
     function initializeGoogleClient() {
         if (googleTokenClient || !window.google?.accounts?.oauth2) return googleTokenClient;
         googleTokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -2150,7 +2182,7 @@
 
     async function handleGoogleTokenResponse(response) {
         const message = document.querySelector("[data-auth-message]");
-        if (!response || response.error || !response.access_token) {
+        if (!response || response.error || !(useStagingGoogleIdToken ? response.credential : response.access_token)) {
             if (message) {
                 message.classList.add("is-error");
                 message.textContent = "Google sign-in was cancelled or failed.";
@@ -2168,7 +2200,7 @@
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    access_token: response.access_token,
+                    ...(useStagingGoogleIdToken ? { id_token: response.credential } : { access_token: response.access_token }),
                     mode: pendingGoogleAuthMode
                 })
             });
