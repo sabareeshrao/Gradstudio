@@ -1,0 +1,28 @@
+name: Temporary About screenshot transfer
+on:
+  push:
+    branches: [chatgpt/remove-about-github-button]
+    paths: ['.github/workflows/temporary-about-snapshot-transfer.yml']
+permissions:
+  actions: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        viewport: [desktop-chrome, tablet-chrome, mobile-chrome]
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VIEWPORT: ${{ matrix.viewport }}
+    steps:
+      - name: Retrieve only the reviewed screenshot from the failed PR run
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/sabareeshrao/Gradstudio/actions/runs/45720640505 --jq .head_sha)" = "7008c268fdddc6df156edb3a9c4c566e7393a94d"
+          gh run download 45720640505 --repo sabareeshrao/Gradstudio --name ui-browser-diagnostics-45720640505 --dir "$RUNNER_TEMP/about-evidence"
+          file="$RUNNER_TEMP/about-evidence/ui-browser/ui-smoke-information-route-visual-baseline-$VIEWPORT/info-about-actual.png"
+          test -f "$file"
+          sha256sum "$file"
+          base64 -w 4000 "$file" | sed 's/^/SNAPSHOT_CHUNK:/'
