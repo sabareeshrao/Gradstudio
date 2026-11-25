@@ -39,6 +39,7 @@ service = "gradstudio-content-staging"
 
 [vars]
 ENVIRONMENT = "staging"
+GOOGLE_OAUTH_CLIENT_ID = "776987891418-hcga1uorb5v5hqhm06qfdgi10556jaok.apps.googleusercontent.com"
 ENVIRONMENT_ISOLATED = "true"
 GIT_CONTENT_ENABLED = "true"
 APP_SOURCE_COMMIT = "REPLACE_WITH_APP_SOURCE_COMMIT"

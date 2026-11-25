@@ -22,6 +22,7 @@ import { withErrorHandling } from './middleware/errorWrapper.js';
 import { checkBotProtection, checkHoneypot } from './middleware/botProtection.js';
 import { logSecurityEvent } from './utils/securityLogger.js';
 import { handleContentCatalogRequest } from './content/catalogAdapter.js';
+import { verifyStagingGoogleAccessToken } from './utils/stagingGoogleOAuth.js';
 
 import {
   handleGetMetricsOverview,
@@ -4018,7 +4019,13 @@ async function handleGoogleTokenAuth(data, env, corsHeaders, ip = 'unknown') {
   if (!accessToken) return jsonResponse({ error: 'Google access token is required' }, 400, corsHeaders);
 
   try {
+    const stagingToken = env.ENVIRONMENT === 'staging'
+      ? await verifyStagingGoogleAccessToken(accessToken, env.GOOGLE_OAUTH_CLIENT_ID)
+      : null;
     const profile = await fetchGoogleProfile(accessToken);
+    if (stagingToken && (profile.sub !== stagingToken.sub || profile.email !== stagingToken.email)) {
+      throw new Error('Google identity verification failed');
+    }
     const result = await completeGoogleAuth(profile, env, ip);
     return jsonResponse(result.body, 200, {
       ...corsHeaders,
