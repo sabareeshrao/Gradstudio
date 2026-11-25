@@ -1,0 +1,117 @@
+name: Application staging deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/application-staging.yml"
+      - "scripts/materialize-staging-config.mjs"
+      - "scripts/validate-environment-config.mjs"
+      - "static/**"
+      - "worker/**"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gradstudio-application-staging
+  cancel-in-progress: false
+
+jobs:
+  staging-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: staging
+    outputs:
+      enabled: ${{ steps.gate.outputs.enabled }}
+    steps:
+      - id: gate
+        name: Read protected staging gate without credentials
+        env:
+          STAGING_ENABLED: ${{ vars.CLOUDFLARE_STAGING_ENABLED }}
+        run: |
+          if [ "$STAGING_ENABLED" = "true" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Application staging deployment is disabled."
+          fi
+
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked application dependencies
+        run: npm ci
+      - name: Validate application UI
+        run: npm run ui:validate
+      - name: Install locked Worker dependencies
+        working-directory: worker
+        run: npm ci
+      - name: Validate Worker and security policy
+        working-directory: worker
+        run: npm run validate
+      - name: Materialize a synthetic isolated staging configuration
+        env:
+          APP_STAGING_D1_DATABASE_ID: 11111111-1111-4111-8111-111111111111
+          APP_STAGING_KV_ID: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          APP_STAGING_REFRESH_TOKENS_KV_ID: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          APP_STAGING_RATE_LIMITS_KV_ID: cccccccccccccccccccccccccccccccc
+          APPLICATION_STAGING_ORIGIN: https://gradstudio-app-staging.example.workers.dev
+          CONTENT_STAGING_ORIGIN: https://gradstudio-content-staging.example.workers.dev
+          APP_SOURCE_COMMIT: 0000000000000000000000000000000000000000
+        run: node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
+      - name: Validate Static Assets bundle without deployment
+        working-directory: worker
+        run: npx wrangler deploy --config wrangler.staging.toml --dry-run --outdir ../dist/application-staging-dry-run
+      - name: Audit locked dependencies
+        run: |
+          npm audit --audit-level=high
+          npm --prefix worker audit --audit-level=high
+
+  deploy-staging:
+    needs: [staging-gate, validate]
+    if: needs.staging-gate.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      APP_STAGING_D1_DATABASE_ID: ${{ vars.APP_STAGING_D1_DATABASE_ID }}
+      APP_STAGING_KV_ID: ${{ vars.APP_STAGING_KV_ID }}
+      APP_STAGING_REFRESH_TOKENS_KV_ID: ${{ vars.APP_STAGING_REFRESH_TOKENS_KV_ID }}
+      APP_STAGING_RATE_LIMITS_KV_ID: ${{ vars.APP_STAGING_RATE_LIMITS_KV_ID }}
+      APPLICATION_STAGING_ORIGIN: ${{ vars.APPLICATION_STAGING_ORIGIN }}
+      CONTENT_STAGING_ORIGIN: ${{ vars.CONTENT_STAGING_ORIGIN }}
+      APP_SOURCE_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Install locked Worker deployment tooling
+        working-directory: worker
+        run: npm ci
+      - name: Verify independent content staging before application deployment
+        run: |
+          node -e "const origin=new URL(process.env.CONTENT_STAGING_ORIGIN);if(origin.protocol!=='https:'||origin.origin!==process.env.CONTENT_STAGING_ORIGIN)throw new Error('CONTENT_STAGING_ORIGIN must be an exact HTTPS origin');const response=await fetch(origin+'/catalog/v1/active.json');if(!response.ok)throw new Error('Content staging catalog is not ready: '+response.status);const catalog=await response.json();if(catalog.contract!=='gradstudio-content-catalog/v1')throw new Error('Content staging contract is incompatible');"
+      - name: Materialize validated isolated staging configuration
+        run: node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
+      - name: Deploy the existing isolated application staging Worker
+        working-directory: worker
+        run: npx wrangler deploy --config wrangler.staging.toml --message "GitHub ${GITHUB_SHA}"
+      - name: Verify application revision, Git content boundary, and Static Assets
+        run: |
+          node -e "const origin=new URL(process.env.APPLICATION_STAGING_ORIGIN);for(let attempt=0;attempt<12;attempt++){try{const health=await fetch(origin+'/api/health',{headers:{Accept:'application/json'}});const body=await health.json();if(health.ok&&body.environment==='staging'&&body.content_source==='git'&&body.source_commit===process.env.APP_SOURCE_COMMIT){const root=await fetch(origin+'/');if(!root.ok)throw new Error('Static application shell unavailable');const legacy=await fetch(origin+'/api/courses');if(legacy.status!==404)throw new Error('Legacy educational catalog did not fail closed');const editor=await fetch(origin+'/gradstudio-learn-admin.html',{redirect:'manual'});if(editor.status!==302||new URL(editor.headers.get('location')).pathname!=='/admin-content-status.html')throw new Error('Legacy editor did not redirect to Git status');const catalog=await fetch(origin+'/api/content/v1/catalog');const catalogBody=await catalog.json();if(!catalog.ok||catalogBody.state!=='ready')throw new Error('Git catalog adapter is not ready');process.exit(0)}}catch(error){if(attempt===11)throw error}await new Promise(resolve=>setTimeout(resolve,5000))}throw new Error('Application staging did not become healthy');"
+

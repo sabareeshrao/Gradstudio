@@ -14,7 +14,7 @@ const PRODUCTION_FINGERPRINTS = [
   'api.gradstudio.org'
 ];
 
-const REQUIRED_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS', 'R2', 'CONTENT'];
+const REQUIRED_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS', 'CONTENT'];
 
 export function validateEnvironmentConfig(content, expectedEnvironment, options = {}) {
   const errors = [];
@@ -39,6 +39,17 @@ export function validateEnvironmentConfig(content, expectedEnvironment, options 
     if (!content.includes(`binding = "${binding}"`)) errors.push(`Missing ${binding} binding.`);
   }
 
+  const usesGitContent = content.includes('GIT_CONTENT_ENABLED = "true"');
+  if (usesGitContent) {
+    if (!content.includes('binding = "ASSETS"')) errors.push('Git-content environment requires the ASSETS binding.');
+    if (!/^\[assets\]$/m.test(content)) errors.push('Git-content environment requires an assets configuration.');
+    if (!/^directory\s*=\s*"\.\.\/static"$/m.test(content)) errors.push('Static Assets directory must be ../static.');
+    if (!/^run_worker_first\s*=\s*true$/m.test(content)) errors.push('Static Assets must run the Worker first.');
+    if (content.includes('binding = "R2"')) errors.push('Git-content environment must not bind legacy educational R2 storage.');
+  } else if (!content.includes('binding = "R2"')) {
+    errors.push('Legacy-content environment requires the R2 binding.');
+  }
+
   const nameMatch = content.match(/^name\s*=\s*"([^"]+)"/m);
   if (!nameMatch || !nameMatch[1].includes(expectedEnvironment)) {
     errors.push(`Worker name must contain ${expectedEnvironment}.`);
@@ -48,7 +59,7 @@ export function validateEnvironmentConfig(content, expectedEnvironment, options 
   if (!databaseName.includes(expectedEnvironment)) errors.push(`D1 database name must contain ${expectedEnvironment}.`);
 
   const bucketName = content.match(/^bucket_name\s*=\s*"([^"]+)"/m)?.[1] || '';
-  if (!bucketName.includes(expectedEnvironment)) errors.push(`R2 bucket name must contain ${expectedEnvironment}.`);
+  if (!usesGitContent && !bucketName.includes(expectedEnvironment)) errors.push(`R2 bucket name must contain ${expectedEnvironment}.`);
 
   if (!example && /REPLACE_WITH_[A-Z0-9_]+/.test(content)) {
     errors.push('Configuration still contains placeholder values.');

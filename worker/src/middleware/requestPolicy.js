@@ -23,15 +23,49 @@ function isUserRoute(path, method) {
     return false;
 }
 
-const REQUIRED_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS', 'R2'];
+const REQUIRED_OPERATIONAL_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS'];
+
+const LEGACY_EDUCATIONAL_PATTERNS = [
+    /^\/api\/courses(?:\/|$)/,
+    /^\/api\/simulations(?:\/|$)/,
+    /^\/api\/(?:search|recent|categories|carousel|carousels|learn-carousels)(?:\/|$)/,
+    /^\/api\/carousel-card(?:\/|$)/,
+    /^\/simulations(?:\/|$)/,
+    /^\/api\/admin\/(?:courses|categories|sections|simulations)(?:\/|$)/,
+    /^\/api\/admin\/(?:bulk-import|bulk-upload|sync-content|upload-simulation|replace-simulation)$/,
+    /^\/api\/admin\/(?:carousel|carousels|learn-carousels)(?:\/|$)/
+];
+
+export function isGitContentEnvironment(env) {
+    return env.GIT_CONTENT_ENABLED === 'true';
+}
+
+export function isLegacyEducationalRoute(path) {
+    return LEGACY_EDUCATIONAL_PATTERNS.some(pattern => pattern.test(path));
+}
 
 export function validateRuntimeEnvironment(env) {
     if (env.ENVIRONMENT_ISOLATED !== 'true') {
         return 'Environment isolation has not been confirmed';
     }
 
-    const missingBinding = REQUIRED_BINDINGS.find(binding => !env[binding]);
+    const requiredBindings = [
+        ...REQUIRED_OPERATIONAL_BINDINGS,
+        ...(isGitContentEnvironment(env) ? ['ASSETS', 'CONTENT'] : ['R2'])
+    ];
+    const missingBinding = requiredBindings.find(binding => !env[binding]);
     if (missingBinding) return `Required binding is unavailable: ${missingBinding}`;
+
+    if (isGitContentEnvironment(env)) {
+        try {
+            const contentOrigin = new URL(env.CONTENT_PUBLIC_ORIGIN);
+            if (contentOrigin.protocol !== 'https:' || contentOrigin.origin !== env.CONTENT_PUBLIC_ORIGIN) {
+                return 'Content public origin is not an exact HTTPS origin';
+            }
+        } catch {
+            return 'Content public origin is not configured';
+        }
+    }
 
     const accessSecret = String(env.JWT_SECRET || '');
     const refreshSecret = String(env.JWT_REFRESH_SECRET || '');

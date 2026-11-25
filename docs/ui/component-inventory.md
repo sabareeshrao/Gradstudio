@@ -120,9 +120,9 @@ These IDs document the present implementation for targeting and regression tests
 
 | UI dependency | Exact source path | Notes |
 | --- | --- | --- |
-| Static asset delivery and API routing | `worker/src/index.js` | Currently serves app assets and routes; security audit applies. |
+| Static asset delivery and API routing | `worker/src/index.js` | Production retains its R2 path; isolated Git-content staging uses the `ASSETS` binding and exact content-origin CSP. Security audit applies. |
 | Auth middleware | `worker/src/middleware/auth.js` and related middleware | High-risk boundary; UI state is not proof of authorization. |
-| Cloudflare bindings/routes | `worker/wrangler.toml` | Currently shares persistent resources across environments. |
+| Cloudflare bindings/routes | `worker/wrangler.toml`, `worker/wrangler.staging.example.toml` | Production remains live and protected. Staging is a separate Worker with isolated D1/KV resources, Static Assets, and a service binding to the content-staging Worker. |
 | Schema and migrations | `worker/schema.sql`, `worker/migrations/` | Operational data remains outside GitHub; definitions stay tracked here. |
 
 ## Inventory maintenance rules

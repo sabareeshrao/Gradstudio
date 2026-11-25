@@ -43,7 +43,7 @@ The endpoint exposes the content release ID, Git commit, and catalog digest alre
 | Incompatible | Block the catalog and report contract/digest diagnostics; do not partially render it. |
 | Rolled back | Accept the older valid release and retain stable-ID operational associations. |
 
-The server and client adapters are locally tested. The active shell now has a staging-only activation path: it is enabled only when the validated `gitContentCatalogStaging` flag is true **and** the browser is on the exact isolated application-staging hostname. Localhost may opt in with `?contentSource=git` for automated browser tests. Production hostnames cannot activate this path through a query parameter. The staging path renders only the Git-derived catalog, records the content release/digest for diagnostics, suppresses legacy educational carousel reads, embeds the catalog's immutable simulation URL, and removes `allow-same-origin` from the content iframe. Production continues to use the existing catalog until an authorized cutover.
+The server and client adapters are locally tested. The active shell now has a staging-only activation path: it is enabled only when the validated `gitContentCatalogStaging` flag is true **and** the browser is on the exact isolated application-staging hostname. Localhost may opt in with `?contentSource=git` for automated browser tests. Production hostnames cannot activate this path through a query parameter. The staging path renders only the Git-derived catalog, records the content release/digest for diagnostics, suppresses legacy educational carousel reads, embeds the catalog's immutable simulation URL, and removes `allow-same-origin` from the content iframe. At the Worker boundary, Git-content staging requires the `CONTENT` and `ASSETS` bindings, serves the checked-in application UI through versioned Workers Static Assets, explicitly allows only the content-staging origin in `frame-src`, and rejects every legacy educational catalog or authoring route. Operational auth, progress, engagement, analytics, moderation, and security routes remain application-owned. Production continues to use the existing catalog and R2 static path until an authorized cutover.
 
 ## Staged activation plan
 
@@ -54,5 +54,9 @@ The server and client adapters are locally tested. The active shell now has a st
 5. Use the content-origin URL in an iframe sandbox without `allow-same-origin`; validate CSP, keyboard, mobile, entitlement display, analytics, pins, and stable progress keys.
 6. Convert educational admin screens to GitHub-first guidance/read-only release status while leaving operational admin functions intact.
 7. Keep all production routes and legacy content untouched until the founder authorizes cutover.
+
+The protected staging deployment and rollback workflow, required GitHub
+environment variables, and least-privilege token scope are documented in
+[`docs/deployment/application-staging.md`](deployment/application-staging.md).
 
 No step in this document authorizes a Cloudflare deployment, D1 mutation, R2 mutation, or production cutover.

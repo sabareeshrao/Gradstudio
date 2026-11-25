@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { SignJWT } from 'jose';
 import worker from '../src/index.js';
 import { generateTokens, verifyAccessToken, verifyRefreshToken } from '../src/utils/auth.js';
-import { getRoutePolicy, isRuntimeRouteDisabled, validateRuntimeEnvironment } from '../src/middleware/requestPolicy.js';
+import { getRoutePolicy, isLegacyEducationalRoute, isRuntimeRouteDisabled, validateRuntimeEnvironment } from '../src/middleware/requestPolicy.js';
 import { checkRateLimit } from '../src/utils/rateLimiter.js';
 import { scanHtmlFile } from '../src/utils/htmlScanner.js';
 import { handleAdminUploadSimulation } from '../src/handlers/adminUpload.js';
@@ -58,6 +58,28 @@ function makeEnv(users = []) {
   };
 }
 
+function makeGitContentEnv(users = []) {
+  return {
+    ...makeEnv(users),
+    GIT_CONTENT_ENABLED: 'true',
+    APP_SOURCE_COMMIT: 'a'.repeat(40),
+    CONTENT_PUBLIC_ORIGIN: 'https://content.example.test',
+    CONTENT: { async fetch() { return Response.json({ status: 'ready', catalog: {} }); } },
+    ASSETS: {
+      async fetch(request) {
+        const path = new URL(request.url).pathname;
+        if (path === '/' || path === '/index.html') {
+          return new Response('<!doctype html><title>staging</title>', {
+            headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
+          });
+        }
+        return new Response('Not found', { status: 404 });
+      }
+    },
+    R2: undefined
+  };
+}
+
 function context() { return { waitUntil() {} }; }
 
 function apiRequest(path, { method = 'GET', token, origin, headers = {}, body } = {}) {
@@ -106,6 +128,60 @@ test('runtime environment fails closed without isolation or distinct secrets', a
 
   const response = await worker.fetch(apiRequest('/api/health'), { ...env, ENVIRONMENT_ISOLATED: 'false' }, context());
   assert.equal(response.status, 503);
+});
+
+test('Git-content staging requires content and Static Assets bindings instead of R2', () => {
+  const env = makeGitContentEnv();
+  assert.equal(validateRuntimeEnvironment(env), null);
+  assert.match(validateRuntimeEnvironment({ ...env, ASSETS: undefined }), /ASSETS/);
+  assert.match(validateRuntimeEnvironment({ ...env, CONTENT: undefined }), /CONTENT/);
+  assert.match(validateRuntimeEnvironment({ ...env, CONTENT_PUBLIC_ORIGIN: undefined }), /origin/i);
+  assert.match(validateRuntimeEnvironment({ ...env, CONTENT_PUBLIC_ORIGIN: 'http://content.example.test' }), /HTTPS/i);
+  assert.equal(validateRuntimeEnvironment({ ...env, R2: undefined }), null);
+});
+
+test('Git-content staging serves versioned assets and exposes safe release diagnostics', async () => {
+  const env = makeGitContentEnv();
+  const asset = await worker.fetch(apiRequest('/'), env, context());
+  assert.equal(asset.status, 200);
+  assert.match(await asset.text(), /staging/);
+  assert.equal(asset.headers.get('Cache-Control'), 'no-cache, no-store, must-revalidate');
+  assert.match(asset.headers.get('Content-Security-Policy'), /frame-src 'self' https:\/\/accounts\.google\.com https:\/\/content\.example\.test/);
+  assert.doesNotMatch(asset.headers.get('Content-Security-Policy'), /frame-src[^;]*\*/);
+
+  const health = await worker.fetch(apiRequest('/api/health'), env, context());
+  assert.equal(health.status, 200);
+  assert.deepEqual(await health.json(), {
+    status: 'ok',
+    version: '1.0.0',
+    environment: 'test',
+    content_source: 'git',
+    source_commit: 'a'.repeat(40)
+  });
+
+  const retiredEditor = await worker.fetch(apiRequest('/gradstudio-learn-admin.html'), env, context());
+  assert.equal(retiredEditor.status, 302);
+  assert.equal(retiredEditor.headers.get('Location'), 'https://api.example.test/admin-content-status.html');
+});
+
+test('Git-content staging fails closed for legacy catalog reads and authoring', async () => {
+  const admin = { id: 'admin-1', email: 'admin@example.test', role: 'admin', is_active: 1 };
+  const env = makeGitContentEnv([admin]);
+  const adminToken = (await generateTokens(admin, env)).accessToken;
+  const attempts = [
+    apiRequest('/api/courses'),
+    apiRequest('/api/categories'),
+    apiRequest('/simulations/legacy/index.html'),
+    apiRequest('/api/admin/courses', { method: 'POST', token: adminToken, body: '{}' }),
+    apiRequest('/api/admin/upload-simulation', { method: 'POST', token: adminToken, body: new FormData() })
+  ];
+  for (const request of attempts) {
+    const response = await worker.fetch(request, env, context());
+    assert.equal(response.status, 404, `${request.method} ${new URL(request.url).pathname}`);
+  }
+  assert.equal(isLegacyEducationalRoute('/api/courses'), true);
+  assert.equal(isLegacyEducationalRoute('/api/admin/metrics/content'), false);
+  assert.equal(isLegacyEducationalRoute('/api/bookmarks'), false);
 });
 
 test('admin routes deny missing, refresh, non-admin, and inactive identities', async () => {

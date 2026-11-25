@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateEnvironmentConfig, validateEnvironmentPair } from '../../scripts/validate-environment-config.mjs';
+import { materializeStagingConfig } from '../../scripts/materialize-staging-config.mjs';
 
 const workerRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -43,4 +44,50 @@ test('development and staging templates share no worker, binding, bucket, or rou
   const dev = fs.readFileSync(path.join(workerRoot, 'wrangler.dev.example.toml'), 'utf8');
   const staging = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');
   assert.deepEqual(validateEnvironmentPair(dev, staging), []);
+});
+
+test('staging materializer accepts isolated resources and removes every placeholder', () => {
+  const template = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');
+  const rendered = materializeStagingConfig(template, {
+    APP_STAGING_D1_DATABASE_ID: '274a8a56-f0da-464b-be73-3e4e34c611a8',
+    APP_STAGING_KV_ID: '2059eb9e0c6a4345b7b59dfb7df21617',
+    APP_STAGING_REFRESH_TOKENS_KV_ID: '3049dcd66dcf4ad58283def5b41cf75b',
+    APP_STAGING_RATE_LIMITS_KV_ID: '39e632ea12a14ebfab93d505815bf395',
+    APPLICATION_STAGING_ORIGIN: 'https://gradstudio-app-staging.gradstudio-non-production.workers.dev',
+    CONTENT_STAGING_ORIGIN: 'https://gradstudio-content-staging.gradstudio-non-production.workers.dev',
+    APP_SOURCE_COMMIT: 'a'.repeat(40)
+  });
+  assert.doesNotMatch(rendered, /REPLACE_WITH_/);
+  assert.deepEqual(validateEnvironmentConfig(rendered, 'staging'), []);
+  assert.match(rendered, /binding = "ASSETS"/);
+  assert.doesNotMatch(rendered, /binding = "R2"/);
+});
+
+test('staging materializer rejects duplicate resources and non-HTTPS origins', () => {
+  const template = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');
+  const base = {
+    APP_STAGING_D1_DATABASE_ID: '274a8a56-f0da-464b-be73-3e4e34c611a8',
+    APP_STAGING_KV_ID: '2059eb9e0c6a4345b7b59dfb7df21617',
+    APP_STAGING_REFRESH_TOKENS_KV_ID: '3049dcd66dcf4ad58283def5b41cf75b',
+    APP_STAGING_RATE_LIMITS_KV_ID: '39e632ea12a14ebfab93d505815bf395',
+    APPLICATION_STAGING_ORIGIN: 'https://gradstudio-app-staging.gradstudio-non-production.workers.dev',
+    CONTENT_STAGING_ORIGIN: 'https://gradstudio-content-staging.gradstudio-non-production.workers.dev',
+    APP_SOURCE_COMMIT: 'b'.repeat(40)
+  };
+  assert.throws(() => materializeStagingConfig(template, {
+    ...base,
+    APP_STAGING_RATE_LIMITS_KV_ID: base.APP_STAGING_KV_ID
+  }), /distinct/);
+  assert.throws(() => materializeStagingConfig(template, {
+    ...base,
+    APPLICATION_STAGING_ORIGIN: 'http://localhost:8787'
+  }), /APPLICATION_STAGING_ORIGIN/);
+});
+
+test('Git-content staging requires Static Assets and forbids an R2 binding', () => {
+  const template = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');
+  const missingAssets = template.replace('binding = "ASSETS"', 'binding = "WRONG"');
+  assert.ok(validateEnvironmentConfig(missingAssets, 'staging', { example: true }).some(error => error.includes('ASSETS')));
+  const withR2 = `${template}\n[[r2_buckets]]\nbinding = "R2"\nbucket_name = "gradstudio-app-assets-staging"\n`;
+  assert.ok(validateEnvironmentConfig(withR2, 'staging', { example: true }).some(error => error.includes('must not bind')));
 });

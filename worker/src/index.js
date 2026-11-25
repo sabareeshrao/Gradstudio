@@ -2,13 +2,14 @@
  * CLOUDFLARE WORKER - LEARNING PLATFORM API
  * Main entry point for all API requests
  */
-// Static files are now served from R2 (no more base64 embeds)
+// Production retains its current R2 static path. Isolated Git-content staging
+// uses the versioned Cloudflare Workers Static Assets binding.
 import { generateTokens, verifyRefreshToken, createRefreshCookie, clearRefreshCookie } from './utils/auth.js';
 import { authenticateToken, getUserFromRequest } from './middleware/auth.js';
 import { requireRole, requireAdmin } from './middleware/authorize.js';
 import { AuthError } from './utils/constants.js';
 import { rateLimit } from './middleware/rateLimit.js';
-import { enforceRequestPolicy, getIpRateLimitRule, getUserRateLimitRule, validateRuntimeEnvironment } from './middleware/requestPolicy.js';
+import { enforceRequestPolicy, getIpRateLimitRule, getUserRateLimitRule, isGitContentEnvironment, isLegacyEducationalRoute, validateRuntimeEnvironment } from './middleware/requestPolicy.js';
 import { trackFailedLogin, recordLoginFailure, resetLoginFailures } from './utils/rateLimiter.js';
 import { validateBody } from './middleware/validateBody.js';
 import { sanitizeHtml, sanitizeForSQL } from './utils/sanitizer.js';
@@ -119,7 +120,16 @@ const applicationWorker = {
 
         // Health Check
         if (path === '/api/health') {
-          return jsonResponse({ status: 'ok', version: '1.0.0', environment: env.ENVIRONMENT || 'production' }, 200, corsHeaders);
+          const sourceCommit = /^[a-f0-9]{40}$/.test(String(env.APP_SOURCE_COMMIT || ''))
+            ? env.APP_SOURCE_COMMIT
+            : null;
+          return jsonResponse({
+            status: 'ok',
+            version: '1.0.0',
+            environment: env.ENVIRONMENT || 'production',
+            content_source: isGitContentEnvironment(env) ? 'git' : 'legacy',
+            source_commit: sourceCommit
+          }, 200, corsHeaders);
         }
 
         // ===== RATE LIMITING (IP BASED) =====
@@ -156,6 +166,18 @@ const applicationWorker = {
         // legacy D1/R2 catalog when the independent content service is absent.
         if (path === '/api/content/v1/catalog' && request.method === 'GET') {
           return addSecurityHeaders(await handleContentCatalogRequest(env, corsHeaders));
+        }
+
+        // Git-content staging must not silently read or mutate the legacy
+        // educational catalog. Operational routes such as auth, progress,
+        // engagement, analytics, and moderation remain application-owned.
+        if (isGitContentEnvironment(env) && isLegacyEducationalRoute(path)) {
+          return jsonResponse({
+            error: {
+              code: AuthError.NOT_FOUND,
+              message: 'Educational content is administered through Git in this environment'
+            }
+          }, 404, corsHeaders);
         }
 
         // 0. List ALL courses (for dynamic sidebar)
@@ -1208,6 +1230,13 @@ const applicationWorker = {
           return await handleServeSimulation(path, request, env, corsHeaders);
         }
 
+        // Isolated staging serves the checked-in application UI as versioned
+        // Workers Static Assets. The existing production R2 path below is
+        // intentionally unchanged until an authorized production cutover.
+        if (isGitContentEnvironment(env)) {
+          return await serveStaticFromAssets(request, env, corsHeaders);
+        }
+
         // ===== STATIC FILE SERVING FROM R2 =====
         const staticPrefix = env.STATIC_PREFIX || 'static/';
         const adminPrefix = env.ADMIN_PREFIX || 'admin-preview/';
@@ -1433,6 +1462,53 @@ async function serveStaticFromR2(r2Key, env, corsHeaders) {
   }
 
   return new Response(object.body, { headers });
+}
+
+async function serveStaticFromAssets(request, env, corsHeaders) {
+  const url = new URL(request.url);
+  const legacyEducationalAdmin = new Set([
+    '/gradstudio-learn-admin.html',
+    '/admin-edit.html',
+    '/Admin.html',
+    '/admin-preview',
+    '/admin-preview/'
+  ]);
+  if (legacyEducationalAdmin.has(url.pathname)) {
+    return Response.redirect(new URL('/admin-content-status.html', url.origin), 302);
+  }
+
+  const response = await env.ASSETS.fetch(request);
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(corsHeaders)) {
+    if (!headers.has(name)) headers.set(name, value);
+  }
+
+  const contentType = headers.get('Content-Type') || '';
+  if (contentType.includes('text/html')) {
+    const contentOrigin = new URL(env.CONTENT_PUBLIC_ORIGIN).origin;
+    headers.set('Content-Security-Policy', [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com",
+      "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com",
+      "img-src 'self' data: https:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://accounts.google.com https://www.googleapis.com",
+      `frame-src 'self' https://accounts.google.com ${contentOrigin}`,
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'"
+    ].join('; '));
+    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    headers.set('Pragma', 'no-cache');
+    headers.set('Expires', '0');
+    headers.set('CDN-Cache-Control', 'no-store');
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
 }
 
 function hasCacheBustParam(request) {
