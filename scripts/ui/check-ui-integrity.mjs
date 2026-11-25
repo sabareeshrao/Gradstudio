@@ -9,8 +9,13 @@ const client = read("static/gradstudio-learn-demo.js");
 const css = read("static/gradstudio-learn-demo.css");
 const applyConfig = read("static/ui-config/apply-config.js");
 const registry = JSON.parse(read("static/ui-config/registry.json"));
+const packageManifest = JSON.parse(read("package.json"));
 const inventory = read("docs/ui/component-inventory.md");
 const failures = [];
+
+if (packageManifest.type === "module") {
+  fail("root package.json may not reclassify legacy browser .js files as ES modules");
+}
 
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 assertUnique(ids, "HTML id");

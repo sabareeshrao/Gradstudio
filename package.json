@@ -2,7 +2,6 @@
   "name": "gradstudio-application-ui",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "ui:compile": "node scripts/ui/compile-ui-config.mjs",
     "ui:compile:check": "node scripts/ui/compile-ui-config.mjs --check",
