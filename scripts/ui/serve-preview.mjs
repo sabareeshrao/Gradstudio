@@ -8,7 +8,7 @@ const port = Number(process.env.GRADSTUDIO_PREVIEW_PORT || 4173);
 const host = process.env.GRADSTUDIO_PREVIEW_HOST || "127.0.0.1";
 const types = {
   ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".ico": "image/x-icon",
-  ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".png": "image/png",
+  ".js": "application/javascript; charset=utf-8", ".mjs": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".png": "image/png",
   ".svg": "image/svg+xml", ".webp": "image/webp"
 };
 

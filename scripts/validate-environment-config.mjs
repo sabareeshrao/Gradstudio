@@ -14,7 +14,7 @@ const PRODUCTION_FINGERPRINTS = [
   'api.gradstudio.org'
 ];
 
-const REQUIRED_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS', 'R2'];
+const REQUIRED_BINDINGS = ['DB', 'KV', 'REFRESH_TOKENS', 'RATE_LIMITS', 'R2', 'CONTENT'];
 
 export function validateEnvironmentConfig(content, expectedEnvironment, options = {}) {
   const errors = [];
@@ -66,6 +66,7 @@ export function extractEnvironmentResources(content) {
     databaseId: content.match(/^database_id\s*=\s*"([^"]+)"/m)?.[1] || '',
     kvIds: [...content.matchAll(/^id\s*=\s*"([^"]+)"/gm)].map(match => match[1]),
     bucket: content.match(/^bucket_name\s*=\s*"([^"]+)"/m)?.[1] || '',
+    services: [...content.matchAll(/^service\s*=\s*"([^"]+)"/gm)].map(match => match[1]),
     routes: [...content.matchAll(/(?:pattern\s*=\s*|routes\s*=\s*\[)"?([^"\]\r\n]+)"?/gm)].map(match => match[1].trim())
   };
 }
@@ -73,8 +74,8 @@ export function extractEnvironmentResources(content) {
 export function validateEnvironmentPair(firstContent, secondContent) {
   const first = extractEnvironmentResources(firstContent);
   const second = extractEnvironmentResources(secondContent);
-  const firstValues = new Set([first.worker, first.databaseId, ...first.kvIds, first.bucket, ...first.routes].filter(Boolean));
-  const secondValues = [second.worker, second.databaseId, ...second.kvIds, second.bucket, ...second.routes].filter(Boolean);
+  const firstValues = new Set([first.worker, first.databaseId, ...first.kvIds, first.bucket, ...first.services, ...first.routes].filter(Boolean));
+  const secondValues = [second.worker, second.databaseId, ...second.kvIds, second.bucket, ...second.services, ...second.routes].filter(Boolean);
   return secondValues.filter(value => firstValues.has(value)).map(value => `Environment resource or route is shared: ${value}`);
 }
 

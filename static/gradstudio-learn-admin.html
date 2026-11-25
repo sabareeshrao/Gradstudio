@@ -15,7 +15,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .sidebar-actions{display:flex;gap:8px;margin-bottom:10px}
 .btn-o{flex:1;padding:7px;background:var(--white);border:1px solid var(--border);border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
 .btn-o:hover{background:var(--hover)}
-.btn-o.full{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
+.btn-o.full{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}.btn-o.link{text-decoration:none;box-sizing:border-box}
 .btn-o.danger{border-color:var(--red);color:var(--red)}
 .btn-o.danger:hover:not(:disabled){background:#fff5f5}
 .btn-o:disabled{opacity:.4;cursor:not-allowed}
@@ -244,6 +244,7 @@ input.is-locked{background:#f8fafc;color:var(--muted);cursor:not-allowed}
             <button class="btn-o" id="btnNewCourse">+ Course</button>
         </div>
         <button class="btn-o full" id="btnCarousel"><i class="fas fa-images"></i> Carousel Cards</button>
+        <a class="btn-o full link" id="contentStatusLink" href="/admin-content-status.html"><i class="fas fa-code-branch"></i> Git content status</a>
         <label class="folder-jump"><span>Jump to folder</span><select id="folderJump"><option value="">Select...</option></select></label>
         <button class="btn-o danger" id="btnDelFolder" disabled style="width:100%;margin-top:6px">Delete Folder</button>
     </div>

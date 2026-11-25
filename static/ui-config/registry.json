@@ -189,6 +189,12 @@
       "selectors": ["#mainArea"], "routeDependencies": ["administration"], "dataDependencies": ["legacy catalog administration API"], "riskClass": "high-risk", "controlMode": "code",
       "tests": ["server-side admin authorization regression"]
     },
+    "admin.content-status": {
+      "componentId": "admin.content-status", "label": "Git-backed content release status", "scope": "admin", "status": "active",
+      "source": ["static/admin-content-status.html", "static/admin-content-status.mjs"], "styleOwner": "static/admin-content-status.html", "behaviorOwner": "static/admin-content-status.mjs",
+      "selectors": ["[data-component-id='admin.content-status']"], "routeDependencies": ["administration", "content status"], "dataDependencies": ["administrator identity", "GradStudio 2.0 catalog adapter"], "riskClass": "structural", "controlMode": "code",
+      "tests": ["read-only catalog evidence browser test", "catalog compatibility state test"]
+    },
     "admin.security": {
       "componentId": "admin.security", "label": "Operational security administration", "scope": "admin", "status": "active",
       "source": ["static/admin-security.html"], "styleOwner": "static/admin-security.html", "behaviorOwner": "static/admin-security.html",
