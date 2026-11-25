@@ -161,6 +161,16 @@ test('oversized admin payload is rejected before handler execution', async () =>
   assert.equal(response.status, 413);
 });
 
+test('streamed payload without Content-Length cannot bypass the body limit', async () => {
+  const request = apiRequest('/api/admin/courses', {
+    method: 'POST',
+    body: 'x'.repeat((1024 * 1024) + 1)
+  });
+  assert.equal(request.headers.get('Content-Length'), null);
+  const response = await worker.fetch(request, makeEnv(), context());
+  assert.equal(response.status, 413);
+});
+
 test('runtime debug, migration, sync, setup, and permanent-delete routes are disabled', async () => {
   const paths = [
     '/debug/r2',

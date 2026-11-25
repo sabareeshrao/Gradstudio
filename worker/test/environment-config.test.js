@@ -33,6 +33,12 @@ test('checked-in dev environment no longer contains persistent production bindin
   assert.doesNotMatch(devSection, /bucket_name\s*=\s*"learning-simulations"/);
 });
 
+test('production CORS allowlist excludes localhost development origins', () => {
+  const production = fs.readFileSync(path.join(workerRoot, 'wrangler.toml'), 'utf8');
+  const productionVars = production.split('# ===== DEV ENVIRONMENT =====')[0];
+  assert.doesNotMatch(productionVars, /https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/);
+});
+
 test('development and staging templates share no worker, binding, bucket, or route identifiers', () => {
   const dev = fs.readFileSync(path.join(workerRoot, 'wrangler.dev.example.toml'), 'utf8');
   const staging = fs.readFileSync(path.join(workerRoot, 'wrangler.staging.example.toml'), 'utf8');

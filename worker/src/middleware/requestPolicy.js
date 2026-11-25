@@ -84,6 +84,34 @@ function contentLength(request) {
     return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
+async function exceedsBodyLimit(request, limit) {
+    const declared = contentLength(request);
+    if (declared !== null) return declared > limit;
+    if (!request.body) return false;
+
+    // HTTP/2 and streamed requests may omit Content-Length. Measure a cloned
+    // stream and stop as soon as it crosses the route limit so an attacker
+    // cannot bypass the policy by switching transfer framing.
+    let reader;
+    try {
+        reader = request.clone().body.getReader();
+        let received = 0;
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) return false;
+            received += value?.byteLength || 0;
+            if (received > limit) {
+                reader.cancel('request body limit exceeded').catch(() => {});
+                return true;
+            }
+        }
+    } catch (error) {
+        console.error('Request body size validation failed:', error);
+        try { reader?.cancel('request body validation failed').catch(() => {}); } catch (_) {}
+        return true;
+    }
+}
+
 export async function enforceRequestPolicy(request, env, corsHeaders = {}) {
     const { pathname } = new URL(request.url);
     const policy = getRoutePolicy(pathname, request.method);
@@ -93,8 +121,7 @@ export async function enforceRequestPolicy(request, env, corsHeaders = {}) {
     }
 
     if (UNSAFE_METHODS.has(request.method) && policy.bodyLimit > 0) {
-        const length = contentLength(request);
-        if (length !== null && length > policy.bodyLimit) {
+        if (await exceedsBodyLimit(request, policy.bodyLimit)) {
             return jsonResponse({ error: { code: AuthError.PAYLOAD_TOO_LARGE, message: 'Request body is too large' } }, 413, corsHeaders);
         }
     }
