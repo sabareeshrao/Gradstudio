@@ -8,6 +8,8 @@ node_modules/
 # Cloudflare Wrangler
 .wrangler/
 worker/wrangler_dev.log
+worker/wrangler.dev.toml
+worker/wrangler.staging.toml
 
 # Deploy scripts & logs
 _deploy_*.ps1

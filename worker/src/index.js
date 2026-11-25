@@ -5,16 +5,16 @@
 // Static files are now served from R2 (no more base64 embeds)
 import { generateTokens, verifyRefreshToken, createRefreshCookie, clearRefreshCookie } from './utils/auth.js';
 import { authenticateToken, getUserFromRequest } from './middleware/auth.js';
-import { requireRole } from './middleware/authorize.js';
+import { requireRole, requireAdmin } from './middleware/authorize.js';
 import { AuthError } from './utils/constants.js';
 import { rateLimit } from './middleware/rateLimit.js';
+import { enforceRequestPolicy, getIpRateLimitRule, getUserRateLimitRule, validateRuntimeEnvironment } from './middleware/requestPolicy.js';
 import { trackFailedLogin, recordLoginFailure, resetLoginFailures } from './utils/rateLimiter.js';
 import { validateBody } from './middleware/validateBody.js';
 import { sanitizeHtml, sanitizeForSQL } from './utils/sanitizer.js';
 import { handleCors, getCorsHeaders } from './middleware/cors.js';
 import { addSecurityHeaders } from './middleware/securityHeaders.js';
 import { sanitizeFilename, validateFileExtension, validateMimeType } from './utils/fileSecurity.js';
-import { scanHtmlFile, addSecurityWrapper } from './utils/htmlScanner.js';
 import { handleError, createRequestId } from './utils/errorHandler.js';
 import { withErrorHandling } from './middleware/errorWrapper.js';
 // Duplicates removed
@@ -68,16 +68,11 @@ import {
 } from './handlers/adminCarousel.js';
 
 
-async function requireAdmin(request, env) {
-  // Auth disabled for admin panel - all admin routes are open
-  return { role: 'admin' };
-}
-
 function getClientIp(request) {
   return request.headers.get('CF-Connecting-IP') || 'unknown';
 }
 
-export default {
+const applicationWorker = {
   async fetch(request, env, ctx) {
 
     try {
@@ -89,6 +84,12 @@ export default {
         return Response.redirect(`https://${url.host}${url.pathname}${url.search}`, 301);
       }
 
+      const environmentError = validateRuntimeEnvironment(env);
+      if (environmentError) {
+        console.error('Worker environment validation failed:', environmentError);
+        return jsonResponse({ error: { code: AuthError.SERVICE_UNAVAILABLE, message: 'Service configuration unavailable' } }, 503);
+      }
+
       // CORS headers for all responses
       // Request ID for tracing
       const requestId = createRequestId();
@@ -97,11 +98,13 @@ export default {
       // request.headers.set('x-request-id', requestId);
 
       // 0. BOT PROTECTION & HONEYPOT
-      // const botRes = await checkBotProtection(request, env);
-      // if (botRes) return botRes;
+      const honeyRes = await checkHoneypot(request, env);
+      if (honeyRes) return addSecurityHeaders(honeyRes);
 
-      // const honeyRes = await checkHoneypot(request, env);
-      // if (honeyRes) return honeyRes;
+      if (env.ENABLE_BOT_PROTECTION === 'true') {
+        const botRes = await checkBotProtection(request, env);
+        if (botRes) return addSecurityHeaders(botRes);
+      }
 
       // CORS & Security
       const corsRes = handleCors(request, env);
@@ -110,6 +113,9 @@ export default {
       const corsHeaders = getCorsHeaders(request, env);
 
       try {
+        const policyError = await enforceRequestPolicy(request, env, corsHeaders);
+        if (policyError) return addSecurityHeaders(policyError);
+
         // Health Check
         if (path === '/api/health') {
           return jsonResponse({ status: 'ok', version: '1.0.0', environment: env.ENVIRONMENT || 'production' }, 200, corsHeaders);
@@ -119,42 +125,12 @@ export default {
         const clientIp = getClientIp(request);
         let limitError = null;
 
-        // 1. Auth - Register
-        if (path === '/api/auth/register' && request.method === 'POST') {
-          limitError = await rateLimit({ limit: 30, window: 3600, keyGenerator: () => clientIp })(request, env);
-        }
-        else if (path === '/api/auth/google/token' && request.method === 'POST') {
-          limitError = await rateLimit({ limit: 30, window: 3600, keyGenerator: () => clientIp })(request, env);
-        }
-        // 2. Auth - Refresh
-        else if (path === '/api/auth/refresh' && request.method === 'POST') {
-          limitError = await rateLimit({ limit: 10, window: 900, keyGenerator: () => clientIp })(request, env);
-        }
-        // 3. Auth - Logout
-        else if ((path === '/api/auth/logout' || path === '/api/auth/logout-all') && request.method === 'POST') {
-          limitError = await rateLimit({ limit: 10, window: 900, keyGenerator: () => clientIp })(request, env);
-        }
-        // 4. Public - Read APIs
-        else if (request.method === 'GET' && (
-          path === '/api/categories' ||
-          path.startsWith('/api/courses') ||
-          path.startsWith('/api/content') ||
-          path.startsWith('/api/simulations') ||
-          path === '/api/learn-carousels' ||
-          path === '/api/search' ||
-          path === '/api/recent'
-        )) {
-          limitError = await rateLimit({ limit: 120, window: 60, keyGenerator: () => clientIp })(request, env);
-        }
-        // 5. Login - Skip (Handled in handler)
-        else if (path === '/api/auth/login') {
-          // Pass
-        }
-        // 6. Global Fallback
-        else {
-          // Apply baseline IP limit for everything else (incl Admin/User routes before auth)
-          limitError = await rateLimit({ limit: 200, window: 60, keyGenerator: () => clientIp })(request, env);
-        }
+        const ipRule = getIpRateLimitRule(path, request.method);
+        limitError = await rateLimit({
+          limit: ipRule.limit,
+          window: ipRule.window,
+          keyGenerator: () => `ip:${clientIp}:${ipRule.bucket}`
+        })(request, env, { ctx });
 
         if (limitError) return limitError;
 
@@ -162,28 +138,15 @@ export default {
         const { user: ratelimitUser } = await getUserFromRequest(request, env);
 
         if (ratelimitUser) {
-          let userLimitError = null;
-
-          // ADMIN ROUTES
-          if (path.startsWith('/api/admin/')) {
-            if (path.startsWith('/api/admin/upload') && request.method === 'POST') {
-              userLimitError = await rateLimit({ limit: 40, window: 60, keyGenerator: () => ratelimitUser.userId })(request, env);
-            } else {
-              userLimitError = await rateLimit({ limit: 120, window: 60, keyGenerator: () => ratelimitUser.userId })(request, env);
-            }
+          const userRule = getUserRateLimitRule(path, request.method);
+          if (userRule) {
+            const userLimitError = await rateLimit({
+              limit: userRule.limit,
+              window: userRule.window,
+              keyGenerator: () => `user:${ratelimitUser.userId}:${userRule.bucket}`
+            })(request, env, { user: ratelimitUser, ctx });
+            if (userLimitError) return userLimitError;
           }
-          // USER ROUTES
-          else if (path.startsWith('/api/bookmarks/') && request.method === 'POST') {
-            userLimitError = await rateLimit({ limit: 60, window: 60, keyGenerator: () => ratelimitUser.userId })(request, env);
-          }
-          else if (path.startsWith('/api/comments/') && request.method === 'POST') {
-            userLimitError = await rateLimit({ limit: 20, window: 60, keyGenerator: () => ratelimitUser.userId })(request, env);
-          }
-          else if (path.startsWith('/api/likes/') && request.method === 'POST') {
-            userLimitError = await rateLimit({ limit: 60, window: 60, keyGenerator: () => ratelimitUser.userId })(request, env);
-          }
-
-          if (userLimitError) return userLimitError;
         }
 
         // ===== ROUTE HANDLING =====
@@ -384,8 +347,7 @@ export default {
           const validationError = await validateBody({
             email: { type: 'email', required: true },
             password: { type: 'string', required: true },
-            display_name: { type: 'string', required: false, maxLength: 50 },
-            role: { type: 'string', required: false }
+            display_name: { type: 'string', required: false, maxLength: 50 }
           })(request, env);
           if (validationError) return validationError;
 
@@ -1298,12 +1260,8 @@ export default {
         if (filename === '') filename = 'index.html';
 
         if (filename && !filename.includes('..')) {
-          let testKey = staticPrefix + filename;
-          let obj = await env.R2.get(testKey);
-          if (!obj && staticPrefix !== 'static/') {
-            testKey = 'static/' + filename;
-            obj = await env.R2.get(testKey);
-          }
+          const testKey = staticPrefix + filename;
+          const obj = await env.R2.get(testKey);
           if (obj) {
             return await serveStaticFromR2(testKey, env, corsHeaders);
           }
@@ -1311,12 +1269,8 @@ export default {
 
         // Fallback for subdirectories (e.g. /login -> /login.html)
         if (filename && !filename.includes('.') && !filename.includes('..')) {
-          let testKey = staticPrefix + filename + '.html';
-          let objHtml = await env.R2.get(testKey);
-          if (!objHtml && staticPrefix !== 'static/') {
-            testKey = 'static/' + filename + '.html';
-            objHtml = await env.R2.get(testKey);
-          }
+          const testKey = staticPrefix + filename + '.html';
+          const objHtml = await env.R2.get(testKey);
           if (objHtml) {
             return await serveStaticFromR2(testKey, env, corsHeaders);
           }
@@ -1331,13 +1285,14 @@ export default {
       } catch (error) {
         console.error('Worker error:', error);
         return jsonResponse(
-          { error: 'Internal server error', message: error.message },
+          { error: 'Internal server error', requestId },
           500,
           corsHeaders
         );
       }
     } catch (criticalError) {
-      return new Response('Critical Worker Error: ' + criticalError.message, { status: 500 });
+      console.error('Critical Worker Error:', criticalError);
+      return new Response('Internal server error', { status: 500 });
     }
   },
 
@@ -1404,6 +1359,15 @@ export default {
   }
 };
 
+export default {
+  async fetch(request, env, ctx) {
+    return addSecurityHeaders(await applicationWorker.fetch(request, env, ctx));
+  },
+  scheduled(event, env, ctx) {
+    return applicationWorker.scheduled(event, env, ctx);
+  }
+};
+
 const CACHE_BUST_PARAMS = ['t'];
 
 // MIME type lookup for static files
@@ -1428,12 +1392,6 @@ const MIME_TYPES = {
  */
 async function serveStaticFromR2(r2Key, env, corsHeaders) {
   let object = await env.R2.get(r2Key);
-
-  // Fallback to production static/ if running in dev and object not found
-  if (!object && env.STATIC_PREFIX && env.STATIC_PREFIX !== 'static/' && r2Key.startsWith(env.STATIC_PREFIX)) {
-    const fallbackKey = r2Key.replace(env.STATIC_PREFIX, 'static/');
-    object = await env.R2.get(fallbackKey);
-  }
 
   if (!object) {
     return new Response('Not found', { status: 404, headers: corsHeaders });
@@ -1513,6 +1471,14 @@ const COURSE_EXTENSIONS_MAP = {};
 async function handleGetAllCourses(request, env, corsHeaders) {
   const url = new URL(request.url);
   const isAdminRequest = url.searchParams.get('admin') === '1';
+  if (isAdminRequest) {
+    try {
+      await requireAdmin(request, env);
+    } catch (error) {
+      const status = error.message === AuthError.INSUFFICIENT_PERMISSIONS ? 403 : 401;
+      return jsonResponse({ error: { code: error.message, message: 'Access denied' } }, status, corsHeaders);
+    }
+  }
 
   if (!isAdminRequest) {
     const cached = await getCachedResponse(request);
@@ -2064,9 +2030,10 @@ async function handleServeSimulation(path, request, env, corsHeaders) {
 
   const securedRes = addSecurityHeaders(res);
 
-  // Restore/Override CSP for simulations (needs lenient policy)
-  securedRes.headers.set('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors *;");
-  securedRes.headers.set('X-Frame-Options', 'ALLOWALL');
+  // Legacy same-origin simulations are forced into a unique opaque origin. The
+  // dedicated content Worker will replace this compatibility boundary.
+  securedRes.headers.set('Content-Security-Policy', "sandbox allow-scripts allow-forms; default-src https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src https:; frame-ancestors 'self' https://gradstudio.org https://www.gradstudio.org; base-uri 'none'; form-action 'none'");
+  securedRes.headers.set('X-Frame-Options', 'SAMEORIGIN');
 
   return securedRes;
 }
@@ -3803,8 +3770,11 @@ async function handleAuthLogin(data, env, corsHeaders, ip) {
     const isPasswordValid = user && await verifyPassword(password, user.password_hash);
 
     if (!isPasswordValid) {
-      await recordLoginFailure(env, ip, email);
+      const failure = await recordLoginFailure(env, ip, email);
       await logSecurityEvent(env, null, 'login_fail', { email, ip, reason: 'invalid_credentials' });
+      if (failure.locked) {
+        await logSecurityEvent(env, null, 'account_locked', { email, ip, reason: 'too_many_attempts' });
+      }
       // Determine if we should warn about attempts left? For security, generic message is better.
       // But user experience might prefer "Invalid credentials".
       return jsonResponse({ error: 'Invalid credentials' }, 401, corsHeaders);
@@ -3901,8 +3871,8 @@ async function handleAuthRefresh(request, env, corsHeaders) {
       return jsonResponse({ error: AuthError.REFRESH_TOKEN_INVALID }, 403, corsHeaders);
     }
 
-    const user = await env.DB.prepare('SELECT id, email, role FROM users WHERE id = ?').bind(userId).first();
-    if (!user) return jsonResponse({ error: 'User not found' }, 403, corsHeaders);
+    const user = await env.DB.prepare('SELECT id, email, role, is_active FROM users WHERE id = ?').bind(userId).first();
+    if (!user || Number(user.is_active) !== 1) return jsonResponse({ error: AuthError.UNAUTHORIZED }, 403, corsHeaders);
 
     const { accessToken: newAccess, refreshToken: newRefresh, jti: newJti } = await generateTokens({ id: user.id, email: user.email, role: user.role }, env);
 

@@ -11,12 +11,10 @@
  * @returns {Promise<{allowed: boolean, remaining: number, resetAt: number}>}
  */
 export async function checkRateLimit(env, key, limit, windowSeconds) {
-    // EMERGENCY: Disable rate limiting to save KV writes (Quota Exceeded)
-    return { allowed: true, remaining: limit, resetAt: Date.now() + (windowSeconds * 1000) };
-
     if (!env.RATE_LIMITS) {
-        console.warn('RATE_LIMITS KV not bound. Skipping rate limit check.');
-        return { allowed: true, remaining: limit, resetAt: Date.now() + (windowSeconds * 1000) };
+        const production = env.ENVIRONMENT === 'production';
+        console.error('RATE_LIMITS KV is not bound.');
+        return { allowed: !production, unavailable: production, remaining: production ? 0 : limit, resetAt: Date.now() + (windowSeconds * 1000) };
     }
 
     // Use fixed windows (buckets) based on current time
@@ -49,7 +47,8 @@ export async function checkRateLimit(env, key, limit, windowSeconds) {
 
     } catch (e) {
         console.error('Rate limit KV error:', e);
-        return { allowed: true, remaining: 1, resetAt: now + 1000 };
+        const production = env.ENVIRONMENT === 'production';
+        return { allowed: !production, unavailable: production, remaining: production ? 0 : 1, resetAt: now + 1000 };
     }
 
     const allowed = count <= limit;
@@ -67,8 +66,23 @@ export async function checkRateLimit(env, key, limit, windowSeconds) {
  * @returns {Promise<{allowed: boolean, error?: string, remainingAttempts?: number}>}
  */
 export async function trackFailedLogin(env, ip, email) {
-    // DEV MODE: Always allow
-    return { allowed: true };
+    if (!env.RATE_LIMITS) {
+        return env.ENVIRONMENT === 'production'
+            ? { allowed: false, error: 'Authentication protection is unavailable' }
+            : { allowed: true };
+    }
+
+    const keys = await getLoginRateLimitKeys(ip, email);
+    const [accountLocked, emailCount, ipCount] = await Promise.all([
+        env.RATE_LIMITS.get(keys.accountLock),
+        env.RATE_LIMITS.get(keys.emailFailures),
+        env.RATE_LIMITS.get(keys.ipFailures)
+    ]);
+
+    const blocked = Boolean(accountLocked) || Number(emailCount || 0) >= 5 || Number(ipCount || 0) >= 20;
+    return blocked
+        ? { allowed: false, error: 'Too many sign-in attempts. Try again later.' }
+        : { allowed: true, remainingAttempts: Math.max(0, 5 - Number(emailCount || 0)) };
 }
 
 /**
@@ -78,8 +92,26 @@ export async function trackFailedLogin(env, ip, email) {
  * @param {string} email 
  */
 export async function recordLoginFailure(env, ip, email) {
-    // DEV MODE: Disabled
-    return;
+    if (!env.RATE_LIMITS) return { locked: env.ENVIRONMENT === 'production' };
+
+    const keys = await getLoginRateLimitKeys(ip, email);
+    const [emailValue, ipValue] = await Promise.all([
+        env.RATE_LIMITS.get(keys.emailFailures),
+        env.RATE_LIMITS.get(keys.ipFailures)
+    ]);
+    const emailCount = Number(emailValue || 0) + 1;
+    const ipCount = Number(ipValue || 0) + 1;
+
+    await Promise.all([
+        env.RATE_LIMITS.put(keys.emailFailures, String(emailCount), { expirationTtl: 900 }),
+        env.RATE_LIMITS.put(keys.ipFailures, String(ipCount), { expirationTtl: 900 })
+    ]);
+
+    const locked = emailCount >= 5;
+    if (locked) {
+        await env.RATE_LIMITS.put(keys.accountLock, '1', { expirationTtl: 900 });
+    }
+    return { locked, emailCount, ipCount };
 }
 
 /**
@@ -90,11 +122,24 @@ export async function recordLoginFailure(env, ip, email) {
  */
 export async function resetLoginFailures(env, ip, email) {
     if (!env.RATE_LIMITS) return;
-    // We only reset the email lock because IP might be attacking multiple accounts
-    // Actually, if a legitimate user logs in, we should assume this IP is maybe okay now for THIS email.
-    // Standard practice: Reset account lock count on success.
-    await env.RATE_LIMITS.delete(`failed_login:email:${email}`);
+    const keys = await getLoginRateLimitKeys(ip, email);
+    await Promise.all([
+        env.RATE_LIMITS.delete(keys.emailFailures),
+        env.RATE_LIMITS.delete(keys.accountLock)
+    ]);
+}
 
-    // Optionally decrement IP count or leave it?
-    // Let's leave IP count to catch distributed attacks or password spraying.
+async function sha256(value) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(value).toLowerCase().trim()));
+    return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export async function getLoginRateLimitKeys(ip, email) {
+    const emailHash = await sha256(email || 'unknown');
+    const ipHash = await sha256(ip || 'unknown');
+    return {
+        emailFailures: `failed_login:email:${emailHash}`,
+        ipFailures: `failed_login:ip:${ipHash}`,
+        accountLock: `account_locked:${emailHash}`
+    };
 }

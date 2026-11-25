@@ -1,0 +1,48 @@
+name: Security and validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Install locked dependencies
+        working-directory: worker
+        run: npm ci
+      - name: Validate source, schema, and security policy
+        working-directory: worker
+        run: npm run validate
+      - name: Scan repository for credential signatures
+        run: node scripts/scan-secrets.mjs
+      - name: Validate non-production configuration templates
+        run: |
+          node scripts/validate-environment-config.mjs worker/wrangler.dev.example.toml dev --example
+          node scripts/validate-environment-config.mjs worker/wrangler.staging.example.toml staging --example
+      - name: Audit runtime dependencies
+        working-directory: worker
+        run: npm audit --audit-level=high
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/dependency-review-action@v5

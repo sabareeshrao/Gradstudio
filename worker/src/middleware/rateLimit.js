@@ -24,7 +24,7 @@ export function rateLimit(options) {
         const key = keyGenerator(request, context.user);
         if (!key) return null; // Should not happen, but safe fallback
 
-        const { allowed, remaining, resetAt } = await checkRateLimit(env, key, limit, window);
+        const { allowed, unavailable, remaining, resetAt } = await checkRateLimit(env, key, limit, window);
 
         const headers = {
             'X-RateLimit-Limit': limit.toString(),
@@ -33,6 +33,16 @@ export function rateLimit(options) {
         };
 
         if (!allowed) {
+            if (unavailable) {
+                return addSecurityHeaders(new Response(JSON.stringify({
+                    success: false,
+                    error: { code: AuthError.SERVICE_UNAVAILABLE, message: 'Request protection is temporarily unavailable.' }
+                }), {
+                    status: 503,
+                    headers: { 'Content-Type': 'application/json', 'Retry-After': '5' }
+                }));
+            }
+
             // Log Rate Limit Hit
             // We interpret 'key' as likely IP or UserId.
             // context.user might be present if auth middleware ran first.

@@ -10,7 +10,13 @@
 export function scanHtmlFile(content) {
     const issues = [];
 
-    if (!content) return { safe: false, issues: ['Empty content'] };
+    if (typeof content !== 'string' || !content.trim()) {
+        return { safe: false, issues: ['Empty content'] };
+    }
+
+    if (content.length > 25 * 1024 * 1024) {
+        issues.push('HTML content exceeds the 25 MiB limit.');
+    }
 
     // 1. Check for External Script Sources
     // <script src="http..." or <script src="//..."
@@ -57,6 +63,17 @@ export function scanHtmlFile(content) {
     // Let's block 'eval(' calls that look executable.
     if (/eval\s*\(/i.test(content)) {
         issues.push('Use of eval() is discouraged and potentially unsafe.');
+    }
+
+    // Prevent obvious attempts to escape the simulation sandbox or communicate
+    // with the embedding application. Same-origin access is also denied by the
+    // response sandbox, but uploads must fail closed before they reach storage.
+    if (/\bwindow\.(?:parent|top)\b|\b(?:parent|top)\.(?:document|location|frames)\b/i.test(content)) {
+        issues.push('Access to parent or top-level browsing contexts is prohibited.');
+    }
+
+    if (/\bpostMessage\s*\(/i.test(content)) {
+        issues.push('Cross-window messaging is prohibited.');
     }
 
     return {

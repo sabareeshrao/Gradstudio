@@ -1,8 +1,7 @@
 import { jsonResponse } from '../utils/responseHelpers.js';
 import { logSecurityEvent } from '../utils/securityLogger.js';
 import { sanitizeFilename, validateFileExtension, validateMimeType } from '../utils/fileSecurity.js';
-import { scanHtmlFile, addSecurityWrapper } from '../utils/htmlScanner.js';
-import { sanitizeForSQL } from '../utils/sanitizer.js';
+import { scanHtmlFile } from '../utils/htmlScanner.js';
 import { getUniqueSlug } from '../utils/slugs.js';
 
 export async function handleAdminUploadSimulation(request, env, corsHeaders) {
@@ -53,15 +52,20 @@ export async function handleAdminUploadSimulation(request, env, corsHeaders) {
         const textContent = await file.text();
         const scanResult = scanHtmlFile(textContent);
 
-        // Log warnings but don't block unless critical (policy choice)
-        if (scanResult.score > 0) {
-            console.warn(`File scan warnings for ${sanitizedFilename}:`, scanResult.warnings);
+        if (!scanResult.safe) {
+            await logSecurityEvent(env, {}, 'file_upload_blocked', {
+                reason: 'unsafe_html',
+                filename: sanitizedFilename,
+                issues: scanResult.issues
+            });
+            return jsonResponse({
+                error: 'Unsafe HTML content was rejected',
+                issues: scanResult.issues
+            }, 400, corsHeaders);
         }
 
-        // 3. Add Security Wrapper/Headers Injection (optional, keeps uploaded HTML safe)
-        // For now, we trust the clean HTML, but let's wrap it to inject our styles/scripts if needed
-        // const secureContent = addSecurityWrapper(textContent); 
-        // KEEPING ORIGINAL CONTENT FOR NOW to ensure functionality, can enable wrapper later.
+        // The response path adds a sandbox CSP. Store only content that has also
+        // passed the upload-time scanner so either control failing stays safe.
         const secureContent = textContent;
 
         // 4. Generate Slug/Key
@@ -124,6 +128,6 @@ export async function handleAdminUploadSimulation(request, env, corsHeaders) {
 
     } catch (e) {
         console.error('Upload error:', e);
-        return jsonResponse({ error: e.message }, 500, corsHeaders);
+        return jsonResponse({ error: 'Simulation upload failed' }, 500, corsHeaders);
     }
 }

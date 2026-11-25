@@ -1,6 +1,7 @@
 import { jsonResponse } from '../utils/responseHelpers.js';
+import { logSecurityEvent } from '../utils/securityLogger.js';
 import { scanHtmlFile } from '../utils/htmlScanner.js';
-import { validateFileExtension } from '../utils/fileSecurity.js';
+import { sanitizeFilename, validateFileExtension, validateMimeType } from '../utils/fileSecurity.js';
 
 /**
  * POST /api/admin/replace-simulation
@@ -25,8 +26,13 @@ export async function handleAdminReplaceSimulation(request, env, corsHeaders) {
             return jsonResponse({ error: 'Invalid file upload' }, 400, corsHeaders);
         }
 
-        if (!validateFileExtension(file.name, ['.html'])) {
+        const sanitizedFilename = sanitizeFilename(file.name).sanitized;
+        if (!validateFileExtension(sanitizedFilename, ['.html'])) {
             return jsonResponse({ error: 'Only .html files are allowed' }, 400, corsHeaders);
+        }
+
+        if (file.type && !validateMimeType(file.type, ['text/html', 'application/xhtml+xml', 'application/octet-stream'])) {
+            return jsonResponse({ error: 'Invalid file type. Expected HTML file.' }, 400, corsHeaders);
         }
 
         // Look up existing simulation to get its R2 file_path
@@ -40,10 +46,18 @@ export async function handleAdminReplaceSimulation(request, env, corsHeaders) {
 
         const textContent = await file.text();
 
-        // Scan for malicious content (warn only, don't block)
         const scanResult = scanHtmlFile(textContent);
-        if (scanResult.score > 0) {
-            console.warn(`Replace scan warnings for sim ${simulationId}:`, scanResult.warnings);
+        if (!scanResult.safe) {
+            await logSecurityEvent(env, {}, 'file_replace_blocked', {
+                reason: 'unsafe_html',
+                filename: sanitizedFilename,
+                simulation_id: simulationId,
+                issues: scanResult.issues
+            });
+            return jsonResponse({
+                error: 'Unsafe HTML content was rejected',
+                issues: scanResult.issues
+            }, 400, corsHeaders);
         }
 
         const r2Key = row.file_path;
@@ -55,7 +69,7 @@ export async function handleAdminReplaceSimulation(request, env, corsHeaders) {
         await env.R2.put(r2Key, textContent, {
             httpMetadata: { contentType: 'text/html' },
             customMetadata: {
-                originalName: file.name,
+                originalName: sanitizedFilename,
                 replacedBy: 'admin',
                 replaceDate: new Date().toISOString()
             }
@@ -70,6 +84,6 @@ export async function handleAdminReplaceSimulation(request, env, corsHeaders) {
 
     } catch (e) {
         console.error('Replace error:', e);
-        return jsonResponse({ error: e.message }, 500, corsHeaders);
+        return jsonResponse({ error: 'Simulation replacement failed' }, 500, corsHeaders);
     }
 }

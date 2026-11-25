@@ -1,52 +1,41 @@
-import { verifyAccessToken, verifyRefreshToken } from '../utils/auth.js';
+import { verifyAccessToken } from '../utils/auth.js';
 import { AuthError } from '../utils/constants.js';
 
-// Helper to try verifying a token with multiple secrets
-async function tryVerifyAnyToken(token, env) {
-    if (!token) return null;
+const authenticationCache = new WeakMap();
 
-    // 1. Try as Access Token
-    try {
-        return await verifyAccessToken(token, env);
-    } catch (e) { /* ignore */ }
+async function loadActiveUser(payload, env) {
+    if (!env.DB) throw new Error(AuthError.SERVICE_UNAVAILABLE);
 
-    // 2. Try as Refresh Token
-    try {
-        const payload = await verifyRefreshToken(token, env);
-        // Refresh tokens might lack some fields, patch them
-        return { ...payload, role: payload.role || 'user', email: payload.email || '' };
-    } catch (e) { /* ignore */ }
+    const user = await env.DB.prepare(
+        'SELECT id, email, role, is_active FROM users WHERE id = ?'
+    ).bind(payload.userId).first();
 
-    return null;
+    if (!user || Number(user.is_active) !== 1) {
+        throw new Error(AuthError.UNAUTHORIZED);
+    }
+
+    return {
+        ...payload,
+        userId: user.id,
+        email: user.email,
+        role: user.role || 'user',
+        isActive: true
+    };
 }
 
 export async function authenticateToken(request, env) {
-    // 1. Check Authorization Header (Bearer)
+    if (authenticationCache.has(request)) return authenticationCache.get(request);
+
     const authHeader = request.headers.get('Authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.split(' ')[1];
-        const user = await tryVerifyAnyToken(token, env);
-        if (user) return user;
+    if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader)) {
+        throw new Error(AuthError.TOKEN_MISSING);
     }
 
-    // 2. Check Cookies (Robust parsing)
-    const cookieHeader = request.headers.get('Cookie');
-    if (cookieHeader) {
-        // Look for common token cookie names
-        const cookieNames = ['refresh_token', 'access_token', 'token', 'auth_token'];
-
-        for (const name of cookieNames) {
-            // Regex to find cookie value: (start or separator) name=value (end or separator)
-            const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-            if (match && match[1]) {
-                const token = decodeURIComponent(match[1]); // Ensure it's decoded
-                const user = await tryVerifyAnyToken(token, env);
-                if (user) return user;
-            }
-        }
-    }
-
-    throw new Error(AuthError.TOKEN_MISSING);
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const payload = await verifyAccessToken(token, env);
+    const user = await loadActiveUser(payload, env);
+    authenticationCache.set(request, user);
+    return user;
 }
 
 export async function getUserFromRequest(request, env) {

@@ -50,15 +50,16 @@ export async function checkHoneypot(request, env) {
 
         // Ban IP in KV for 24 hours
         // Key: "ban:ip_address"
-        await env.KV.put(`ban:${ip}`, 'reason:honeypot', { expirationTtl: 86400 });
+        if (env.KV) await env.KV.put(`ban:${ip}`, 'reason:honeypot', { expirationTtl: 86400 });
 
-        await logSecurityEvent(env, null, 'honeypot_trigger', { ip, endpoint: url.pathname });
+        if (env.DB) await logSecurityEvent(env, null, 'honeypot_trigger', { ip, endpoint: url.pathname });
 
         return new Response('Access Denied', { status: 403 });
     }
 
     // Check if IP is already banned
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!env.KV) return null;
     const isBanned = await env.KV.get(`ban:${ip}`);
     if (isBanned) {
         // We could log every hit from banned IP, but that's noisy. 

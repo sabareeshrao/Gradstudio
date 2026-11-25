@@ -3,6 +3,7 @@
  */
 import { jsonResponse } from '../utils/responseHelpers.js';
 import { logSecurityEvent } from '../utils/securityLogger.js';
+import { getLoginRateLimitKeys } from '../utils/rateLimiter.js';
 
 // GET /api/admin/metrics/overview
 export async function handleGetMetricsOverview(request, env, corsHeaders) {
@@ -181,8 +182,10 @@ export async function handleUnlockAccount(data, env, ctx, corsHeaders) {
     const { email } = data;
     if (!email) return jsonResponse({ error: 'Email required' }, 400, corsHeaders);
 
-    await env.KV.delete(`login_failures:${email}`);
-    await env.KV.delete(`account_locked:${email}`);
+    if (!env.RATE_LIMITS) return jsonResponse({ error: 'Rate-limit store unavailable' }, 503, corsHeaders);
+    const keys = await getLoginRateLimitKeys('unknown', email);
+    await env.RATE_LIMITS.delete(keys.emailFailures);
+    await env.RATE_LIMITS.delete(keys.accountLock);
 
     await logSecurityEvent(env, ctx, 'admin_action', { action: 'unlock_account', target_email: email });
 

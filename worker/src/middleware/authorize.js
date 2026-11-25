@@ -1,5 +1,6 @@
 import { AuthError } from '../utils/constants.js';
 import { hasPermission } from '../utils/roles.js';
+import { authenticateToken } from './auth.js';
 
 export function requireRole(...allowedRoles) {
     return (user) => {
@@ -27,4 +28,10 @@ export function requirePermission(permission) {
 
         return true;
     };
+}
+
+export async function requireAdmin(request, env) {
+    const user = await authenticateToken(request, env);
+    requireRole('admin')(user);
+    return user;
 }
