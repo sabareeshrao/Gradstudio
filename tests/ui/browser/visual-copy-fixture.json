@@ -1,0 +1,20 @@
+{
+  "home": {
+    "hero": {
+      "title": "GradStudio",
+      "heading": "Clearer concepts. Faster learning.",
+      "subheading": "GradStudio breaks down complex technical concepts into clear diagrams, real-world use cases, and focused refreshers you can actually remember.",
+      "primaryAction": {
+        "label": "Start Learning"
+      },
+      "secondaryAction": {
+        "label": "Get Started"
+      },
+      "featureAlt": "Featured module preview"
+    }
+  },
+  "footer": {
+    "description": "Clear, structured courses focused on real understanding, practical examples, and stronger technical foundations.",
+    "copyright": "Copyright 2026 GradStudio.org. All rights reserved."
+  }
+}
