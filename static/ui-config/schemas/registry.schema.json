@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gradstudio.org/schemas/ui/registry.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "canonicalShell", "components"],
+  "properties": {
+    "$schema": { "const": "./schemas/registry.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "canonicalShell": { "const": "static/index.html" },
+    "components": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/component" }
+    }
+  },
+  "$defs": {
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["componentId", "label", "scope", "status", "source", "styleOwner", "behaviorOwner", "selectors", "routeDependencies", "dataDependencies", "riskClass", "controlMode", "tests"],
+      "properties": {
+        "componentId": { "type": "string", "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z][a-z0-9-]*)+$" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "scope": { "enum": ["public", "dynamic", "admin", "reference"] },
+        "status": { "enum": ["canonical", "active", "generated", "legacy", "retained-reference", "archived-prototype"] },
+        "source": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/path" } },
+        "styleOwner": { "$ref": "#/$defs/path" },
+        "behaviorOwner": { "$ref": "#/$defs/path" },
+        "selectors": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 160 } },
+        "routeDependencies": { "type": "array", "items": { "type": "string", "maxLength": 120 } },
+        "dataDependencies": { "type": "array", "items": { "type": "string", "maxLength": 160 } },
+        "riskClass": { "enum": ["routine", "structural", "high-risk"] },
+        "controlMode": { "enum": ["configuration", "code", "configuration-and-code", "reference-only"] },
+        "configPaths": { "type": "array", "items": { "$ref": "#/$defs/path" } },
+        "tests": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 160 } }
+      }
+    },
+    "path": { "type": "string", "pattern": "^(?:static|docs|tests|admin-preview)/[A-Za-z0-9._/-]+$" }
+  }
+}

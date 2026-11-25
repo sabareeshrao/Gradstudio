@@ -833,7 +833,7 @@
 
     function accountMenuHtml(user) {
         return `
-            <div class="auth-account-menu-wrap">
+            <div class="auth-account-menu-wrap" data-component-id="account.menu" data-test-id="account-menu">
                 <button class="auth-user-chip" type="button" data-account-menu-trigger aria-haspopup="menu" aria-expanded="false">
                     <span>${escapeHtml(userInitials(user))}</span>
                     <strong>${escapeHtml(userDisplayName(user))}</strong>
@@ -1185,7 +1185,7 @@
             const course = courseLookup.get(item.courseId);
             const tags = course?.tags?.length ? course.tags : [item.type === "topic" ? "Module" : "Course"];
             return `
-                <article class="course-card pinned-card" role="button" tabindex="0" data-pinned-card="${escapeHtml(item.key)}" aria-label="Open ${escapeHtml(item.title)}">
+                <article class="course-card pinned-card" role="button" tabindex="0" data-component-id="catalog.course-card" data-component-instance="${escapeHtml(item.key)}" data-pinned-card="${escapeHtml(item.key)}" aria-label="Open ${escapeHtml(item.title)}">
                     <div class="card-media" data-thumbnail="${escapeHtml(course?.thumbnail?.type || "image")}" data-pinned-media-course-id="${escapeHtml(item.courseId)}">
                         <span class="course-label">${item.type === "topic" ? "MODULE" : "COURSE"}</span>
                     </div>
@@ -1210,7 +1210,7 @@
         `;
 
         return `
-            <section class="info-page-hero" aria-labelledby="pinnedPageTitle">
+            <section class="info-page-hero" aria-labelledby="pinnedPageTitle" data-component-id="account.pinned-view">
                 <div class="section-copy">
                     <span class="eyebrow">My pinned</span>
                     <h1 id="pinnedPageTitle">Pinned courses and modules</h1>
@@ -2411,7 +2411,7 @@
         const text = config.sectionText || "";
         if (!text) return "";
         return `
-            <section class="demo-carousel-block demo-text-layout-block" data-align="${escapeHtml(config.layoutAlign)}" data-copy-align="${escapeHtml(config.sectionTextAlign)}" style="${carouselBlockStyle(config)}">
+            <section class="demo-carousel-block demo-text-layout-block" data-component-id="home.carousel-block" data-component-instance="${escapeHtml(block.id)}" data-align="${escapeHtml(config.layoutAlign)}" data-copy-align="${escapeHtml(config.sectionTextAlign)}" style="${carouselBlockStyle(config)}">
                 <div class="carousel-text-block">${escapeHtml(text)}</div>
             </section>
         `;
@@ -2434,7 +2434,7 @@
                 : renderFeatureDemoCard(card, index % 2 === 0 ? "is-primary" : "is-secondary", config, sharedCardHeight);
         }).join("");
         return `
-            <section class="demo-carousel-block" data-align="${escapeHtml(config.layoutAlign)}" data-copy-align="${escapeHtml(config.sectionTextAlign)}" data-infinite="${config.infiniteScroll ? "true" : "false"}" style="${carouselBlockStyle(config)}">
+            <section class="demo-carousel-block" data-component-id="home.carousel-block" data-component-instance="${escapeHtml(block.id)}" data-align="${escapeHtml(config.layoutAlign)}" data-copy-align="${escapeHtml(config.sectionTextAlign)}" data-infinite="${config.infiniteScroll ? "true" : "false"}" style="${carouselBlockStyle(config)}">
                 ${config.sectionText ? `<div class="carousel-text-block">${escapeHtml(config.sectionText)}</div>` : ""}
                 <div class="carousel-heading ${hasHeadingText ? "" : "is-controls-only"}">
                     <div>
@@ -3028,7 +3028,7 @@
         }
 
         grid.innerHTML = visibleCourses.map((course) => `
-            <article class="course-card" role="button" tabindex="0" data-course-card-id="${escapeHtml(course.id)}" aria-label="Open ${escapeHtml(course.title)}">
+            <article class="course-card" role="button" tabindex="0" data-component-id="catalog.course-card" data-component-instance="${escapeHtml(course.id)}" data-course-card-id="${escapeHtml(course.id)}" aria-label="Open ${escapeHtml(course.title)}">
                 <div class="card-media" data-thumbnail="${course.thumbnail.type}" data-course-id="${escapeHtml(course.id)}">
                     <span class="course-label">COURSE</span>
                 </div>
@@ -3432,8 +3432,9 @@
 
     function renderDetailSection(section, sectionIndex, courseId) {
         const isExpanded = sectionIndex === 0;
+        const sectionKey = cssIdent(section.section_id || section.id || `${courseId}-${sectionIndex}`);
         return `
-            <section class="detail-section">
+            <section class="detail-section" data-component-id="course.detail-section" data-component-instance="${escapeHtml(sectionKey)}">
                 <button
                     class="detail-section-toggle"
                     type="button"
@@ -3532,7 +3533,7 @@
                         ${sections.map((section, sectionIndex) => {
                             const isExpanded = sectionIndex === activeSectionIndex;
                             return `
-                            <section class="player-section">
+                            <section class="player-section" data-component-id="course.player-section" data-component-instance="${escapeHtml(cssIdent(section.section_id || section.id || `${course.id}-${sectionIndex}`))}">
                                 <button
                                     class="player-section-title"
                                     type="button"
@@ -3575,6 +3576,8 @@
                     <div class="player-frame-shell">
                         <iframe
                             class="lesson-frame"
+                            data-component-id="course.simulation-frame"
+                            data-component-instance="${escapeHtml(selectedLesson.simulation_id || selectedLesson.id || `${course.id}-${safeIndex}`)}"
                             title="${escapeHtml(frameTitle)}"
                             sandbox="allow-scripts allow-forms allow-same-origin"
                             ${frameSource.type === "src" ? `src="${escapeHtml(frameSource.value)}"` : `srcdoc="${escapeHtml(frameSource.value)}"`}

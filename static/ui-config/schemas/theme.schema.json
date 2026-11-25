@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gradstudio.org/schemas/ui/theme.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "colors", "typography", "spacing", "radii", "shadows", "breakpoints", "motion", "layout"],
+  "properties": {
+    "$schema": { "const": "./schemas/theme.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "colors": { "$ref": "#/$defs/colors" },
+    "typography": { "$ref": "#/$defs/typography" },
+    "spacing": { "$ref": "#/$defs/spacing" },
+    "radii": { "$ref": "#/$defs/radii" },
+    "shadows": { "$ref": "#/$defs/shadows" },
+    "breakpoints": { "$ref": "#/$defs/breakpoints" },
+    "motion": { "$ref": "#/$defs/motion" },
+    "layout": { "$ref": "#/$defs/layout" }
+  },
+  "$defs": {
+    "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "positiveNumber": { "type": "number", "minimum": 0, "maximum": 4096 },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pageBg", "panelBg", "ink", "inkSoft", "muted", "line", "lineStrong", "accent", "accentSoft", "success", "warning"],
+      "properties": {
+        "pageBg": { "$ref": "#/$defs/hex" }, "panelBg": { "$ref": "#/$defs/hex" },
+        "ink": { "$ref": "#/$defs/hex" }, "inkSoft": { "$ref": "#/$defs/hex" },
+        "muted": { "$ref": "#/$defs/hex" }, "line": { "$ref": "#/$defs/hex" },
+        "lineStrong": { "$ref": "#/$defs/hex" }, "accent": { "$ref": "#/$defs/hex" },
+        "accentSoft": { "$ref": "#/$defs/hex" }, "success": { "$ref": "#/$defs/hex" },
+        "warning": { "$ref": "#/$defs/hex" }
+      }
+    },
+    "typography": {
+      "type": "object", "additionalProperties": false,
+      "required": ["uiFont", "displayFont", "baseSizePx"],
+      "properties": {
+        "uiFont": { "type": "string", "pattern": "^[A-Za-z0-9 ,.-]+$", "maxLength": 240 },
+        "displayFont": { "type": "string", "pattern": "^[A-Za-z0-9 ,.-]+$", "maxLength": 240 },
+        "baseSizePx": { "type": "number", "minimum": 12, "maximum": 24 }
+      }
+    },
+    "spacing": {
+      "type": "object", "additionalProperties": false,
+      "required": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
+      "properties": { "xs": { "$ref": "#/$defs/positiveNumber" }, "sm": { "$ref": "#/$defs/positiveNumber" }, "md": { "$ref": "#/$defs/positiveNumber" }, "lg": { "$ref": "#/$defs/positiveNumber" }, "xl": { "$ref": "#/$defs/positiveNumber" }, "2xl": { "$ref": "#/$defs/positiveNumber" }, "3xl": { "$ref": "#/$defs/positiveNumber" } }
+    },
+    "radii": {
+      "type": "object", "additionalProperties": false,
+      "required": ["control", "card", "pill"],
+      "properties": { "control": { "$ref": "#/$defs/positiveNumber" }, "card": { "$ref": "#/$defs/positiveNumber" }, "pill": { "$ref": "#/$defs/positiveNumber" } }
+    },
+    "shadows": {
+      "type": "object", "additionalProperties": false,
+      "required": ["panel", "card"],
+      "properties": {
+        "panel": { "type": "string", "pattern": "^[0-9a-zA-Z#(),. %+-]+$", "maxLength": 160 },
+        "card": { "type": "string", "pattern": "^[0-9a-zA-Z#(),. %+-]+$", "maxLength": 160 }
+      }
+    },
+    "breakpoints": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mobile", "compact", "tablet", "wide"],
+      "properties": { "mobile": { "$ref": "#/$defs/positiveNumber" }, "compact": { "$ref": "#/$defs/positiveNumber" }, "tablet": { "$ref": "#/$defs/positiveNumber" }, "wide": { "$ref": "#/$defs/positiveNumber" } }
+    },
+    "motion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fastMs", "normalMs", "easing", "respectReducedMotion"],
+      "properties": {
+        "fastMs": { "type": "number", "minimum": 0, "maximum": 2000 },
+        "normalMs": { "type": "number", "minimum": 0, "maximum": 4000 },
+        "easing": { "type": "string", "pattern": "^(?:linear|ease|ease-in|ease-out|ease-in-out|cubic-bezier\\([0-9., -]+\\))$" },
+        "respectReducedMotion": { "const": true }
+      }
+    },
+    "layout": {
+      "type": "object", "additionalProperties": false,
+      "required": ["catalogSidebarWidthPx", "catalogGapPx", "courseCardMinWidthPx", "courseGridGapPx", "headerMinHeightPx"],
+      "properties": {
+        "catalogSidebarWidthPx": { "type": "number", "minimum": 180, "maximum": 480 },
+        "catalogGapPx": { "type": "number", "minimum": 0, "maximum": 96 },
+        "courseCardMinWidthPx": { "type": "number", "minimum": 180, "maximum": 480 },
+        "courseGridGapPx": { "type": "number", "minimum": 0, "maximum": 96 },
+        "headerMinHeightPx": { "type": "number", "minimum": 48, "maximum": 160 }
+      }
+    }
+  }
+}

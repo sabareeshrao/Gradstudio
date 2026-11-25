@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gradstudio.org/schemas/ui/site.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "brand", "featureFlags"],
+  "properties": {
+    "$schema": { "const": "./schemas/site.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "homeHref", "logoSrc", "logoAlt"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "homeHref": { "type": "string", "pattern": "^(?:/|#[a-z0-9-]+)$" },
+        "logoSrc": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(?:png|jpg|jpeg|webp|svg)$" },
+        "logoAlt": { "type": "string", "maxLength": 120 }
+      }
+    },
+    "featureFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["courseMenu", "heroFeature", "pinnedLearning", "homepageLayoutBlocks"],
+      "properties": {
+        "courseMenu": { "type": "boolean" },
+        "heroFeature": { "type": "boolean" },
+        "pinnedLearning": { "type": "boolean" },
+        "homepageLayoutBlocks": { "type": "boolean" }
+      }
+    }
+  }
+}

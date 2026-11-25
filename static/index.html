@@ -13,26 +13,26 @@
 </head>
 
 <body>
-    <div class="site-shell">
-        <header class="topbar">
-            <a class="brand" href="/" aria-label="GradStudio home">
+    <div class="site-shell" data-component-id="site.shell">
+        <header class="topbar" data-component-id="site.header">
+            <a class="brand" href="/" aria-label="GradStudio home" data-component-id="site.brand">
                 <span class="brand-mark-wrap" aria-hidden="true"><img class="brand-mark" src="gradstudio-header-logo.png" alt=""></span>
                 <span class="brand-name"><span class="brand-name-grad">Grad</span>Studio</span>
             </a>
 
-            <nav class="main-nav" aria-label="Primary navigation">
+            <nav class="main-nav" aria-label="Primary navigation" data-component-id="site.primary-nav">
                 <a href="#home" data-nav-home>Home</a>
                 <button class="nav-link" type="button" data-nav-courses data-course-menu-trigger aria-expanded="false" aria-controls="courseMegaMenu">Courses</button>
                 <a href="#about" data-nav-about>About</a>
                 <a href="#contact" data-nav-contact>Contact</a>
             </nav>
 
-            <div class="top-actions">
+            <div class="top-actions" data-component-id="site.auth-actions">
                 <button class="signup-button" type="button" data-auth-open="signup">Sign up</button>
                 <button class="signin-button" type="button" data-auth-open="signin">Sign in</button>
             </div>
         </header>
-        <div id="courseMegaMenu" class="course-mega-menu" aria-label="Course topics" hidden>
+        <div id="courseMegaMenu" class="course-mega-menu" aria-label="Course topics" data-component-id="site.course-menu" hidden>
             <div class="course-mega-inner">
                 <div class="mega-column mega-column-feature">
                     <span>Browse Topics</span>
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <section id="home" class="hero-section" aria-labelledby="heroTitle">
+        <section id="home" class="hero-section" aria-labelledby="heroTitle" data-component-id="home.hero">
             <div class="hero-copy">
                 <h1 id="heroTitle" class="hero-title">GradStudio</h1>
                 <h2 class="hero-heading">Clearer concepts. Faster learning.</h2>
@@ -52,13 +52,13 @@
                     <a class="secondary-action" href="#get-started" data-auth-open="signup">Get Started</a>
                 </div>
             </div>
-            <div class="hero-visual" aria-label="Featured module preview">
+            <div class="hero-visual" aria-label="Featured module preview" data-component-id="home.hero-feature">
                 <div id="heroCarouselCard" class="hero-carousel-card-shell"></div>
             </div>
         </section>
 
-        <main id="courses" class="catalog-shell">
-            <aside class="topics-panel" aria-label="Course topics">
+        <main id="courses" class="catalog-shell" data-component-id="catalog.shell">
+            <aside class="topics-panel" aria-label="Course topics" data-component-id="catalog.topics">
                 <div class="topics-header">
                     <span>Topics</span>
                     <strong id="topicCount">0</strong>
@@ -67,19 +67,19 @@
             </aside>
 
             <section class="catalog-view" aria-labelledby="catalogTitle">
-                <div class="catalog-head">
+                <div class="catalog-head" data-component-id="catalog.header">
                     <div>
                         <span class="eyebrow">Course Catalog</span>
                         <h2 id="catalogTitle" class="catalog-title">All Courses</h2>
                     </div>
                     <div class="catalog-tools">
-                        <label class="search-box search-box--catalog" for="courseSearch">
+                        <label class="search-box search-box--catalog" for="courseSearch" data-component-id="catalog.search">
                             <svg aria-hidden="true" viewBox="0 0 24 24">
                                 <path d="M10.8 18.1a7.3 7.3 0 1 1 5.2-2.2l4 4-1.4 1.4-4-4a7.2 7.2 0 0 1-3.8 1.1Zm0-2a5.3 5.3 0 1 0 0-10.6 5.3 5.3 0 0 0 0 10.6Z" />
                             </svg>
                             <input id="courseSearch" type="search" placeholder="Search courses">
                         </label>
-                        <button class="pinned-button" type="button" data-open-pinned aria-label="Open pinned courses and modules">
+                        <button class="pinned-button" type="button" data-open-pinned data-component-id="catalog.pinned" aria-label="Open pinned courses and modules">
                             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M15 4.5l4.5 4.5-3 3 .8 3.7-1.1 1.1-4.1-4.1-4.9 4.9-.8-.8 4.9-4.9-4.1-4.1 1.1-1.1 3.7.8 3-3z"></path>
                                 <path d="M5 19l4-4"></path>
@@ -94,21 +94,21 @@
                     </div>
                 </div>
 
-                <div id="activeFilter" class="active-filter" hidden></div>
-                <div id="courseGrid" class="course-grid"></div>
-                <nav id="pager" class="pager" aria-label="Pagination"></nav>
+                <div id="activeFilter" class="active-filter" data-component-id="catalog.active-filter" hidden></div>
+                <div id="courseGrid" class="course-grid" data-component-id="catalog.course-grid"></div>
+                <nav id="pager" class="pager" data-component-id="catalog.pagination" aria-label="Pagination"></nav>
             </section>
         </main>
 
-        <main id="courseDetail" class="course-detail-shell" hidden></main>
-        <main id="coursePlayer" class="course-player-shell" hidden></main>
+        <main id="courseDetail" class="course-detail-shell" data-component-id="course.detail" hidden></main>
+        <main id="coursePlayer" class="course-player-shell" data-component-id="course.player" hidden></main>
 
-        <section id="demoCarouselBlocks" class="demo-carousel-stack" aria-label="Homepage layout blocks"></section>
+        <section id="demoCarouselBlocks" class="demo-carousel-stack" data-component-id="home.layout-blocks" aria-label="Homepage layout blocks"></section>
 
-        <main id="authPage" class="auth-page-shell" hidden></main>
-        <main id="infoPage" class="info-page-shell" hidden></main>
+        <main id="authPage" class="auth-page-shell" data-component-id="auth.page" hidden></main>
+        <main id="infoPage" class="info-page-shell" data-component-id="info.page" hidden></main>
 
-        <footer class="site-footer">
+        <footer class="site-footer" data-component-id="site.footer">
             <div class="footer-space-bg" aria-hidden="true">
                 <span class="footer-orbit-ring footer-orbit-ring--one"></span>
                 <span class="footer-orbit-ring footer-orbit-ring--two"></span>
@@ -122,12 +122,12 @@
             <div class="footer-inner">
             <div class="footer-brand-block">
                 <a class="footer-logo" href="#home" data-nav-home>Grad<span>Studio</span></a>
-                <p>Clear, structured courses focused on real understanding, practical examples, and stronger technical foundations.</p>
-                <div class="footer-bottom"><span class="footer-pulse"></span>Copyright 2026 GradStudio.org. All rights reserved.</div>
+                <p data-ui-footer-description>Clear, structured courses focused on real understanding, practical examples, and stronger technical foundations.</p>
+                <div class="footer-bottom"><span class="footer-pulse"></span><span data-ui-footer-copyright>Copyright 2026 GradStudio.org. All rights reserved.</span></div>
             </div>
             <div class="footer-nav-block">
                 <div class="footer-index-label"><span></span>Index</div>
-            <nav class="footer-links" aria-label="Footer navigation">
+            <nav class="footer-links" aria-label="Footer navigation" data-ui-footer-links>
                 <a href="#about" data-nav-about>About</a>
                 <a href="#contact" data-nav-contact>Contact</a>
                 <a href="#legal" data-info-page="legal">Legal</a>
@@ -140,6 +140,8 @@
         </footer>
     </div>
 
+    <script src="ui-config/generated/ui-config.runtime.js"></script>
+    <script src="ui-config/apply-config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="gradstudio-learn-demo.js?v=20260429-about-copy-image-v48"></script>
 </body>

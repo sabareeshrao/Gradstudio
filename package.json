@@ -1,0 +1,21 @@
+{
+  "name": "gradstudio-application-ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ui:compile": "node scripts/ui/compile-ui-config.mjs",
+    "ui:compile:check": "node scripts/ui/compile-ui-config.mjs --check",
+    "ui:check": "node scripts/ui/check-ui-integrity.mjs",
+    "ui:test": "node --test tests/ui/*.test.mjs",
+    "ui:test:browser": "playwright test",
+    "ui:test:browser:update": "playwright test --update-snapshots",
+    "ui:validate": "npm run ui:compile:check && npm run ui:check && npm run ui:test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.50.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

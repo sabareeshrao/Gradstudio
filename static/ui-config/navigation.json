@@ -1,0 +1,42 @@
+{
+  "$schema": "./schemas/navigation.schema.json",
+  "schemaVersion": 1,
+  "items": [
+    {
+      "componentId": "site.primary-nav.home",
+      "route": "home",
+      "kind": "link",
+      "label": "Home",
+      "href": "#home",
+      "order": 10,
+      "visible": true
+    },
+    {
+      "componentId": "site.primary-nav.courses",
+      "route": "courses",
+      "kind": "menu-button",
+      "label": "Courses",
+      "href": "#courses",
+      "order": 20,
+      "visible": true
+    },
+    {
+      "componentId": "site.primary-nav.about",
+      "route": "about",
+      "kind": "link",
+      "label": "About",
+      "href": "#about",
+      "order": 30,
+      "visible": true
+    },
+    {
+      "componentId": "site.primary-nav.contact",
+      "route": "contact",
+      "kind": "link",
+      "label": "Contact",
+      "href": "#contact",
+      "order": 40,
+      "visible": true
+    }
+  ]
+}

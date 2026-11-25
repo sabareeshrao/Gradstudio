@@ -1,0 +1,59 @@
+{
+  "$schema": "./schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "colors": {
+    "pageBg": "#f7f8fb",
+    "panelBg": "#ffffff",
+    "ink": "#172033",
+    "inkSoft": "#5c667a",
+    "muted": "#8a94a8",
+    "line": "#e7ebf2",
+    "lineStrong": "#d8deea",
+    "accent": "#ff5a00",
+    "accentSoft": "#fff0e4",
+    "success": "#e85d04",
+    "warning": "#b45309"
+  },
+  "typography": {
+    "uiFont": "Inter, SF Pro Text, SF Pro Display, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, sans-serif",
+    "displayFont": "Inter, SF Pro Display, SF Pro Text, -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, sans-serif",
+    "baseSizePx": 16
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radii": {
+    "control": 8,
+    "card": 8,
+    "pill": 999
+  },
+  "shadows": {
+    "panel": "0 12px 28px rgba(29, 41, 57, 0.08)",
+    "card": "0 1px 2px rgba(29, 41, 57, 0.04)"
+  },
+  "breakpoints": {
+    "mobile": 520,
+    "compact": 820,
+    "tablet": 920,
+    "wide": 1180
+  },
+  "motion": {
+    "fastMs": 150,
+    "normalMs": 260,
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "respectReducedMotion": true
+  },
+  "layout": {
+    "catalogSidebarWidthPx": 278,
+    "catalogGapPx": 34,
+    "courseCardMinWidthPx": 240,
+    "courseGridGapPx": 24,
+    "headerMinHeightPx": 66
+  }
+}

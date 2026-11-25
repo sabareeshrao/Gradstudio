@@ -1,0 +1,14 @@
+{
+  "$schema": "./schemas/footer.schema.json",
+  "schemaVersion": 1,
+  "description": "Clear, structured courses focused on real understanding, practical examples, and stronger technical foundations.",
+  "copyright": "Copyright 2026 GradStudio.org. All rights reserved.",
+  "links": [
+    { "componentId": "site.footer.about", "route": "about", "label": "About", "href": "#about", "order": 10, "visible": true },
+    { "componentId": "site.footer.contact", "route": "contact", "label": "Contact", "href": "#contact", "order": 20, "visible": true },
+    { "componentId": "site.footer.legal", "route": "legal", "label": "Legal", "href": "#legal", "order": 30, "visible": true },
+    { "componentId": "site.footer.privacy", "route": "privacy", "label": "Privacy", "href": "#privacy", "order": 40, "visible": true },
+    { "componentId": "site.footer.terms", "route": "terms", "label": "Terms", "href": "#terms", "order": 50, "visible": true },
+    { "componentId": "site.footer.cookies", "route": "cookies", "label": "Cookies", "href": "#cookies", "order": 60, "visible": true }
+  ]
+}

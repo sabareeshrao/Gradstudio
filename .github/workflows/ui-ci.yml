@@ -1,0 +1,58 @@
+name: Application UI validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ui-ci.yml"
+      - "docs/ui/**"
+      - "scripts/ui/**"
+      - "static/**"
+      - "tests/ui/**"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.mjs"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ui-ci.yml"
+      - "docs/ui/**"
+      - "scripts/ui/**"
+      - "static/**"
+      - "tests/ui/**"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: application-ui-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate registry, schemas, generated files, links, and unit tests
+        run: npm run ui:validate
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chrome
+      - name: Run desktop and mobile browser tests
+        run: npm run ui:test:browser
+      - name: Upload browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ui-browser-diagnostics-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
