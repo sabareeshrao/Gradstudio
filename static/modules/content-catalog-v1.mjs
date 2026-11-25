@@ -43,6 +43,90 @@ export function catalogToApplicationModel(catalog) {
   };
 }
 
+export function applicationModelToUiCatalog(model) {
+  if (model?.state !== READY) {
+    return {
+      state: model?.state || 'unavailable',
+      error: model?.error || { code: 'application_catalog_unavailable' },
+      topics: ['All'],
+      courses: [],
+      allCourses: []
+    };
+  }
+
+  const categoryById = new Map(model.categories.map(category => [category.id, category]));
+  const courses = model.courses.map((course, courseIndex) => {
+    const category = categoryById.get(course.category_id);
+    const topic = category?.title || 'Course';
+    const lessons = [];
+    const sections = course.sections.map((section, sectionIndex) => {
+      const lessonIndexes = [];
+      for (const simulation of section.simulations) {
+        lessonIndexes.push(lessons.length);
+        lessons.push({
+          id: simulation.id,
+          simulation_id: simulation.id,
+          stableProgressKey: simulation.stableProgressKey,
+          title: simulation.title,
+          description: simulation.description || '',
+          type: 'lab',
+          src: simulation.source,
+          section_id: section.id,
+          access: simulation.access || { display: 'open' }
+        });
+      }
+      return {
+        id: section.id,
+        section_id: section.id,
+        title: section.title || `Section ${sectionIndex + 1}`,
+        lessonIndexes
+      };
+    });
+    const mark = String(course.title || course.id || 'GS')
+      .split(/\s+/)
+      .map(word => word.replace(/[^a-z0-9]/gi, '').charAt(0))
+      .join('')
+      .slice(0, 4)
+      .toUpperCase() || 'GS';
+
+    return {
+      id: course.id,
+      title: course.title,
+      description: course.description || '',
+      tags: [topic],
+      topicFolder: topic,
+      fromApi: true,
+      fromGitContent: true,
+      stableProgressKey: course.stableProgressKey,
+      displayOrder: course.order ?? courseIndex,
+      level: displayAccess(course.access),
+      labs: `${lessons.length} module${lessons.length === 1 ? '' : 's'}`,
+      lessons,
+      sections,
+      _contentHydrated: true,
+      _apiLessons: lessons,
+      _apiSections: sections,
+      thumbnail: {
+        type: 'html',
+        html: `<div class="html-thumb thumb-stack"><div class="stack-tiles" aria-hidden="true"><span></span><span></span><span></span></div><span class="sr-only">${mark}</span></div>`
+      }
+    };
+  });
+
+  return {
+    state: READY,
+    release: model.release,
+    topics: ['All', ...model.categories.map(category => category.title)],
+    courses,
+    allCourses: courses
+  };
+}
+
+function displayAccess(access) {
+  const value = String(access?.display || 'open');
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export async function loadApplicationCatalog(apiBase = '') {
   let response;
   try {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { catalogToApplicationModel, resolveSimulationSource } from '../../static/modules/content-catalog-v1.mjs';
+import { applicationModelToUiCatalog, catalogToApplicationModel, resolveSimulationSource } from '../../static/modules/content-catalog-v1.mjs';
 
 function catalog() {
   const release = 'rel-222222222222-aaaaaaaaaaaa';
@@ -50,6 +50,27 @@ test('empty catalog maps to a ready empty application model', () => {
   const model = catalogToApplicationModel(empty);
   assert.equal(model.state, 'ready');
   assert.deepEqual(model.courses, []);
+});
+
+test('application model maps into the active shell without losing stable IDs or release provenance', () => {
+  const ui = applicationModelToUiCatalog(catalogToApplicationModel(catalog()));
+  assert.equal(ui.state, 'ready');
+  assert.deepEqual(ui.topics, ['All', 'One']);
+  assert.equal(ui.release.id, 'rel-222222222222-aaaaaaaaaaaa');
+  assert.equal(ui.courses[0].id, 'course-one');
+  assert.equal(ui.courses[0].stableProgressKey, 'course:course-one');
+  assert.equal(ui.courses[0].fromGitContent, true);
+  assert.equal(ui.courses[0]._apiSections[0].section_id, 'section-one');
+  assert.equal(ui.courses[0]._apiLessons[0].simulation_id, 'sim-one');
+  assert.equal(ui.courses[0]._apiLessons[0].stableProgressKey, 'simulation:sim-one');
+  assert.match(ui.courses[0]._apiLessons[0].src, /^https:\/\/content\.example\/releases\//);
+});
+
+test('non-ready application state cannot expose courses from another source', () => {
+  const ui = applicationModelToUiCatalog({ state: 'unavailable', error: { code: 'test' } });
+  assert.equal(ui.state, 'unavailable');
+  assert.deepEqual(ui.courses, []);
+  assert.deepEqual(ui.topics, ['All']);
 });
 
 test('simulation sources cannot cross origins or releases', () => {

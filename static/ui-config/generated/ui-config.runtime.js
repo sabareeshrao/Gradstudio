@@ -142,6 +142,7 @@
     },
     "featureFlags": {
       "courseMenu": true,
+      "gitContentCatalogStaging": true,
       "heroFeature": true,
       "homepageLayoutBlocks": true,
       "pinnedLearning": true

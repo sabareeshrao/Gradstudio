@@ -43,11 +43,18 @@ function signedCatalog({ release = 'rel-222222222222-aaaaaaaaaaaa', commit = '2'
   return { ...unsigned, catalog_sha256: crypto.createHash('sha256').update(canonical).digest('hex') };
 }
 
-test('content-first rollout cannot activate the preparatory adapter in the current application', async () => {
+test('content-first rollout is limited to the configured staging host and localhost test opt-in', async () => {
   const shell = await readFile(new URL('../../static/index.html', import.meta.url), 'utf8');
   const activeClient = await readFile(new URL('../../static/gradstudio-learn-demo.js', import.meta.url), 'utf8');
+  const siteConfig = JSON.parse(await readFile(new URL('../../static/ui-config/site.json', import.meta.url), 'utf8'));
   assert.doesNotMatch(shell, /content-catalog-v1\.mjs/);
-  assert.doesNotMatch(activeClient, /\/api\/content\/v1\/catalog|content-catalog-v1\.mjs/);
+  assert.equal(siteConfig.featureFlags.gitContentCatalogStaging, true);
+  assert.match(activeClient, /gradstudio-app-staging\.gradstudio-non-production\.workers\.dev/);
+  assert.match(activeClient, /gitContentPreviewHost && gitContentPreviewRequested/);
+  assert.match(activeClient, /featureFlags\?\.gitContentCatalogStaging === true/);
+  assert.match(activeClient, /import\('\.\/modules\/content-catalog-v1\.mjs'\)/);
+  assert.match(activeClient, /USE_GIT_CONTENT_CATALOG \? false : loadCatalogFromCache\(\)/);
+  assert.match(activeClient, /sandbox="\$\{frameSandbox\}"/);
 });
 
 test('application-first rollout is explicitly unconfigured and never reads legacy content', async () => {

@@ -9,6 +9,7 @@
   },
   "featureFlags": {
     "courseMenu": true,
+    "gitContentCatalogStaging": true,
     "heroFeature": true,
     "pinnedLearning": true,
     "homepageLayoutBlocks": true

@@ -43,14 +43,14 @@ The endpoint exposes the content release ID, Git commit, and catalog digest alre
 | Incompatible | Block the catalog and report contract/digest diagnostics; do not partially render it. |
 | Rolled back | Accept the older valid release and retain stable-ID operational associations. |
 
-The server and client adapters are now locally tested, but the active website has not been switched to them. That switch depends on an isolated deployed content origin, iframe/browser validation, entitlement mapping, and regression coverage for operational features.
+The server and client adapters are locally tested. The active shell now has a staging-only activation path: it is enabled only when the validated `gitContentCatalogStaging` flag is true **and** the browser is on the exact isolated application-staging hostname. Localhost may opt in with `?contentSource=git` for automated browser tests. Production hostnames cannot activate this path through a query parameter. The staging path renders only the Git-derived catalog, records the content release/digest for diagnostics, suppresses legacy educational carousel reads, embeds the catalog's immutable simulation URL, and removes `allow-same-origin` from the content iframe. Production continues to use the existing catalog until an authorized cutover.
 
 ## Staged activation plan
 
 1. Deploy the content Worker and application Worker only in the separate non-production account.
 2. Configure the application `CONTENT` service binding to `gradstudio-content-staging`.
 3. Test empty and synthetic catalogs plus independent app/content rollout and rollback combinations.
-4. Wire topics, cards, detail, sections, search, carousels, and player to the client model behind a staging-only feature flag.
+4. Verify the implemented staging-only topics, cards, detail, sections, search, empty/error states, and player mapping against the deployed origin. Educational carousels remain empty rather than reading the legacy catalog.
 5. Use the content-origin URL in an iframe sandbox without `allow-same-origin`; validate CSP, keyboard, mobile, entitlement display, analytics, pins, and stable progress keys.
 6. Convert educational admin screens to GitHub-first guidance/read-only release status while leaving operational admin functions intact.
 7. Keep all production routes and legacy content untouched until the founder authorizes cutover.
