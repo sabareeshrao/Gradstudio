@@ -43,7 +43,7 @@ jobs:
           APP_STAGING_RATE_LIMITS_KV_ID: cccccccccccccccccccccccccccccccc
           APPLICATION_STAGING_ORIGIN: https://gradstudio-app-staging.example.workers.dev
           CONTENT_STAGING_ORIGIN: https://gradstudio-content-staging.example.workers.dev
-          APP_SOURCE_COMMIT: 0000000000000000000000000000000000000000
+          APP_SOURCE_COMMIT: "0000000000000000000000000000000000000000"
         run: |
           node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
           cd worker
