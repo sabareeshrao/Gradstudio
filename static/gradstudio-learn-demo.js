@@ -1,7 +1,9 @@
 (function () {
     const pageSize = 9;
     const PINNED_STORAGE_KEY = "gradstudio_learn_pinned_v1";
-    const GOOGLE_CLIENT_ID = "506619320686-uhlmttc48vj7osbolv8ragqkfs1v4l70.apps.googleusercontent.com";
+    const GOOGLE_CLIENT_ID = window.location.origin === "https://gradstudio-app-staging.gradstudio-non-production.workers.dev"
+        ? "776987891418-hcga1uorb5v5hqhm06qfdgi10556jaok.apps.googleusercontent.com"
+        : "506619320686-uhlmttc48vj7osbolv8ragqkfs1v4l70.apps.googleusercontent.com";
     let activeTopic = "All";
     let activePage = 1;
     let query = "";
