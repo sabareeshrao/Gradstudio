@@ -138,3 +138,7 @@ These IDs document the present implementation for targeting and regression tests
 - Moving or renaming a component must preserve or intentionally migrate stable IDs so prompt history remains meaningful.
 
 
+
+## Shared appearance
+
+`site.appearance` is rendered in public auth actions and lesson toolbar (`[data-appearance-select]`); `static/appearance.js` owns Light/Dark/System, local preference, system changes, cross-tab synchronization and inherited iframe color-scheme. Dark shell palette is in canonical CSS. Do not reload iframes, use filters on lesson artwork, relax sandbox, or modify lesson source from application code. Lessons with fixed palettes require content-repository compatibility work.

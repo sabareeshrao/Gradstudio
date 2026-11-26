@@ -872,6 +872,7 @@
             node.innerHTML = signedIn
                 ? accountMenuHtml(user)
                 : '<button class="signup-button" type="button" data-auth-open="signup">Sign up</button><button class="signin-button" type="button" data-auth-open="signin">Sign in</button>';
+            node.insertAdjacentHTML("afterbegin", window.GradStudioAppearance?.control() || "");
         });
         bindAuthOpenButtons(document);
         bindAccountMenuButtons(document);
@@ -3645,6 +3646,7 @@
                         <a class="player-back-link" href="#course/${encodeURIComponent(course.id)}">Back to course</a>
                         <h1>${escapeHtml(selectedLesson.title)}</h1>
                         <div class="player-toolbar-actions">
+                            ${window.GradStudioAppearance?.control() || ""}
                             <button class="player-pill" type="button" data-pin-course-id="${escapeHtml(course.id)}" data-pin-topic="${safeIndex}">
                                 Pin module
                             </button>

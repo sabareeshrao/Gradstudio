@@ -5895,3 +5895,78 @@ body.is-about-page .info-page-shell {
     .player-main:has(.has-lesson-controls) .player-frame-shell { height: calc(100vh - 88px); }
     .player-main:fullscreen .player-frame-shell { height: auto !important; }
 }
+
+/* Shared appearance: neutral ChatGPT-style dark surfaces; lesson media stays untouched. */
+.appearance-select {
+    color-scheme: inherit;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--panel-bg);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    padding: 0 8px;
+    min-height: 34px;
+    max-width: 95px;
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+.appearance-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.has-lesson-controls .appearance-select { height: 44px; }
+@media (max-width: 820px) { .has-lesson-controls .appearance-select { height: 38px; } }
+.lesson-frame { color-scheme: inherit; }
+:root[data-theme="dark"] {
+    --page-bg: #212121 !important;
+    --panel-bg: #212121 !important;
+    --ink: #ececec !important;
+    --ink-soft: #b4b4b4 !important;
+    --muted: #a6a6a6 !important;
+    --line: #424242 !important;
+    --line-strong: #505050 !important;
+    --accent: #ff9b55 !important;
+    --accent-soft: #303030 !important;
+    --success: #73d6a4 !important;
+    --warning: #ffb86c !important;
+    --shadow: none !important;
+    --shadow-card: none !important;
+}
+html[data-theme="dark"] :is(body,.site-shell,.hero-section,.catalog-shell,.catalog-view,.course-detail-shell,.course-player-shell,.course-player-layout,.player-main,.player-toolbar,.player-frame-shell,.lesson-frame,.auth-page-shell,.info-page-shell,.about-standard,.about-standard-image-frame,.player-main:fullscreen) {
+    background: #212121 !important;
+    color: #ececec !important;
+    border-color: #424242 !important;
+}
+html[data-theme="dark"] :is(.topbar,.topics-panel,.player-sidebar,.course-mega-menu,.site-footer) {
+    background: #171717 !important;
+    color: #ececec !important;
+    border-color: #424242 !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] :is(.brand,.hero-title) {
+    background: none !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] .hero-title { color: #ececec !important; }
+html[data-theme="dark"] :is(.main-nav a,.main-nav button,.mega-column-feature span,.mega-topic-group span,.mega-topic-group button,.mega-all-modules,.topic-button,.hero-heading,.catalog-title,.course-title,.course-overview-card h1,.course-contents-head h2,.lesson-row h3,.player-toolbar h1,.player-course-title,.player-section-title,.player-lesson-link,.auth-copy h1,.auth-form h2,.auth-field label,.info-page-hero h1,.info-document-section h2,.about-standard-copy h1,.about-standard-copy h2,.about-standard-caption strong,.about-standard-points h3,.auth-account-summary strong,.auth-account-menu button) { color: #ececec !important; }
+html[data-theme="dark"] :is(.hero-subheading,.eyebrow,.topics-header,.topic-button small,.catalog-stats span,.course-meta,.course-description,.course-level-line,.course-kicker,.course-breadcrumb,.course-breadcrumb a,.course-contents-head>span,.detail-section-toggle small,.lesson-status,.auth-copy p,.auth-divider,.auth-account-summary small,.auth-account-menu button small,.info-document-section p,.info-contact-card span,.about-standard-copy p,.about-standard-caption span,.about-standard-points p,.footer-brand-block p,.footer-bottom,.footer-links a,.mega-topic-group small,.pager-ellipsis) { color: #b4b4b4 !important; }
+html[data-theme="dark"] :is(.course-card,.pinned-card,.course-overview-card,.course-contents-card,.auth-panel,.auth-benefits li,.info-page-hero,.info-document,.info-contact-card,.about-standard-points article,.about-profile-card,.auth-account-menu,.auth-account-menu button,.empty-state,.detail-section-toggle,.lesson-row,.topic-button,.catalog-stats span,.topics-header strong,.search-box,.player-search input,.auth-field input,.auth-tabs,.signin-button,.secondary-action,.auth-user-chip,.pinned-button,.open-tab-button,.pin-chip,.player-pill,.player-zoom-controls,.player-back-link,.auth-google,.course-pin-icon,.tag,.pager button,.carousel-button,.lesson-icon) {
+    background: #262626 !important;
+    color: #ececec !important;
+    border-color: #424242 !important;
+    box-shadow: none !important;
+}
+html[data-theme="dark"] :is(.search-box input,.player-zoom-controls button,.auth-tab) { color: #ececec !important; }
+html[data-theme="dark"] :is(input::placeholder) { color: #b4b4b4 !important; }
+html[data-theme="dark"] :is(.main-nav a[aria-current="page"],.main-nav button[aria-current="page"],.topic-button.is-active,.player-section-title[aria-expanded="true"],.player-lesson-link.is-active,.pin-chip.is-pinned,.player-pill.is-pinned,.course-pin-icon.is-pinned,.auth-tab.is-active,.pager button.is-active) {
+    background: #303030 !important;
+    color: #ffb27d !important;
+    border-color: #595959 !important;
+}
+html[data-theme="dark"] :is(.main-nav a:hover,.main-nav button:hover,.topic-button:hover,.player-section-title:hover,.player-lesson-link:hover,.player-pill:hover,.player-back-link:hover,.player-zoom-controls button:hover:not(:disabled),.detail-section-toggle:hover,.lesson-row:hover,.auth-account-menu button:hover,.auth-google:hover,.pager button:hover,.course-pin-icon:hover) {
+    background: #303030 !important;
+    color: #ececec !important;
+}
+html[data-theme="dark"] :is(.primary-action,.start-learning-button,.auth-submit,.signup-button) { background: #ff9b55 !important; color: #171717 !important; border-color: #ff9b55 !important; }
+html[data-theme="dark"] .player-zoom-value { border-color: #424242 !important; }
+html[data-theme="dark"] .footer-space-bg { display: none; }
+html[data-theme="dark"] .about-standard-copy p { color: #b4b4b4 !important; }
