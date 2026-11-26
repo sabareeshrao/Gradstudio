@@ -40,3 +40,39 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   await expect.poll(()=>frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
   await original.dispose();
 });
+
+
+for (const fallback of [false, true]) {
+  test("content-only fullscreen preserves the iframe and restores toolbar ("+(fallback?"viewport fallback":"native")+")", async ({page})=>{
+    await page.route("**/*",route=>{const url=new URL(route.request().url());return url.origin==="http://127.0.0.1:4173"&&!url.pathname.startsWith("/api/")?route.continue():route.abort();});
+    await page.goto("/?demoFallback=1");
+    await page.locator("[data-component-id='catalog.course-card']").first().click();
+    await page.locator("[data-start-learning]").click();
+    const main=page.locator(".player-main"), toolbar=page.locator(".player-toolbar"), frame=page.locator(".lesson-frame");
+    const enter=page.locator("[data-fullscreen]"), exit=page.getByRole("button",{name:"Exit fullscreen"});
+    const original=await frame.elementHandle(), child=await original.contentFrame();
+    await child.locator("body").waitFor();
+    await child.evaluate(()=>{window.__fullscreenProof=42;});
+    const sandbox=await frame.getAttribute("sandbox");
+    await page.getByRole("button",{name:"Zoom in lesson"}).click();
+    if(fallback) await main.evaluate(el=>{el.requestFullscreen=()=>Promise.reject(new Error("unsupported"));});
+    await enter.click();
+    await expect(main).toHaveClass(/is-lesson-fullscreen/);
+    await expect(toolbar).toBeHidden();
+    await expect(exit).toBeVisible();
+    const rect=await main.boundingBox(), viewport=page.viewportSize();
+    expect(Math.abs(rect.x)).toBeLessThanOrEqual(2);
+    expect(Math.abs(rect.y)).toBeLessThanOrEqual(2);
+    expect(Math.abs(rect.width-viewport.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(rect.height-viewport.height)).toBeLessThanOrEqual(2);
+    expect(await original.evaluate(n=>n===document.querySelector(".lesson-frame"))).toBe(true);
+    expect(await child.evaluate(()=>window.__fullscreenProof)).toBe(42);
+    expect(await frame.getAttribute("sandbox")).toBe(sandbox);
+    await exit.click();
+    await expect(toolbar).toBeVisible();
+    await expect(page.getByRole("button",{name:"Reset lesson zoom to 100%"})).toHaveText("110%");
+    await expect(exit).toBeHidden();
+    expect(await child.evaluate(()=>window.__fullscreenProof)).toBe(42);
+    await original.dispose();
+  });
+}

@@ -5924,3 +5924,74 @@ html[data-lesson-theme="light"] .lesson-frame {
     color-scheme: light;
     background: #ffffff;
 }
+
+
+/* Fullscreen is a content-only mode; never expose or clip the ordinary toolbar. */
+.player-fullscreen-exit[hidden] { display: none !important; }
+.player-main.is-lesson-fullscreen, .player-main:fullscreen {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff;
+}
+.player-main.is-lesson-fullscreen > .player-toolbar,
+.player-main:fullscreen > .player-toolbar { display: none !important; }
+.player-main.is-lesson-fullscreen > .player-frame-shell,
+.player-main:fullscreen > .player-frame-shell {
+    flex: 1 1 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+}
+.course-player-shell:has(.player-main.is-lesson-fullscreen) {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+.course-player-layout:has(.player-main.is-lesson-fullscreen) {
+    display: block !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.course-player-layout:has(.player-main.is-lesson-fullscreen) > .player-sidebar { display: none !important; }
+.player-main.is-lesson-fullscreen:not(:fullscreen) { position: fixed !important; inset: 0 !important; z-index: 10000; }
+.player-fullscreen-exit {
+    position: absolute;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #737373;
+    border-radius: 50%;
+    background: #303030;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px #0004;
+}
+.player-fullscreen-exit:focus-visible { outline: 2px solid #60a5fa; outline-offset: 3px; }
+html[data-lesson-theme="dark"] .player-main.is-lesson-fullscreen,
+html[data-lesson-theme="dark"] .player-main:fullscreen,
+html[data-lesson-theme="dark"] .player-main.is-lesson-fullscreen > .player-frame-shell,
+html[data-lesson-theme="dark"] .player-main:fullscreen > .player-frame-shell { background: #000; }
