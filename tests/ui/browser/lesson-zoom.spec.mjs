@@ -11,7 +11,12 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   const before=await frame.evaluate(n=>({width:n.offsetWidth,height:n.offsetHeight,src:n.getAttribute("src"),srcdoc:n.getAttribute("srcdoc"),sandbox:n.getAttribute("sandbox")}));
   const original=await frame.elementHandle();
   const toolbarBox=await toolbar.boundingBox(), sidebarBox=await sidebar.boundingBox(), shellBox=await shell.boundingBox();
-  expect((await page.locator("[data-fullscreen]").boundingBox()).x).toBeLessThan((await minus.boundingBox()).x);
+  const fullscreenBox=await page.locator("[data-fullscreen]").boundingBox();
+  const zoomBox=await page.locator(".player-zoom-controls").boundingBox();
+  const gap=zoomBox.x-(fullscreenBox.x+fullscreenBox.width);
+  expect(gap).toBeGreaterThanOrEqual(0);
+  expect(gap).toBeLessThanOrEqual(12);
+  expect(Math.abs(zoomBox.y-fullscreenBox.y)).toBeLessThanOrEqual(2);
   await plus.click(); await expect(reset).toHaveText("110%");
   expect(await frame.evaluate(n=>n.offsetWidth)).toBeLessThan(before.width);
   expect(await frame.evaluate(n=>n.offsetHeight)).toBeLessThan(before.height);
@@ -22,6 +27,6 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   await reset.click(); await expect(reset).toHaveText("100%");
   for(let i=0;i<5;i++) await minus.click(); await expect(reset).toHaveText("50%"); await expect(minus).toBeDisabled();
   await reset.focus(); await page.keyboard.press("Enter"); await expect(reset).toHaveText("100%");
-  expect(await frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
+  await expect.poll(()=>frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
   await original.dispose();
 });
