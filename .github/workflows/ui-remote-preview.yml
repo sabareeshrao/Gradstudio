@@ -1,0 +1,76 @@
+name: UI remote preview
+
+on:
+  workflow_run:
+    workflows: ["Application UI validation"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ui-remote-preview-${{ github.event.workflow_run.pull_requests[0].number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  upload-version-preview:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            worker/package-lock.json
+      - name: Install trusted default-branch tooling
+        run: |
+          npm ci
+          npm --prefix worker ci
+      - name: Materialize only regular UI files from the validated immutable head
+        id: preview
+        run: node scripts/ui/prepare-remote-preview.mjs
+      - name: Revalidate deterministic UI output after materialization
+        if: steps.preview.outputs.eligible == 'true'
+        run: npm run ui:validate
+      - name: Materialize isolated staging bindings for an unpromoted version
+        if: steps.preview.outputs.eligible == 'true'
+        env:
+          APP_STAGING_D1_DATABASE_ID: ${{ vars.APP_STAGING_D1_DATABASE_ID }}
+          APP_STAGING_KV_ID: ${{ vars.APP_STAGING_KV_ID }}
+          APP_STAGING_REFRESH_TOKENS_KV_ID: ${{ vars.APP_STAGING_REFRESH_TOKENS_KV_ID }}
+          APP_STAGING_RATE_LIMITS_KV_ID: ${{ vars.APP_STAGING_RATE_LIMITS_KV_ID }}
+          APPLICATION_STAGING_ORIGIN: ${{ vars.APPLICATION_STAGING_ORIGIN }}
+          CONTENT_STAGING_ORIGIN: ${{ vars.CONTENT_STAGING_ORIGIN }}
+          APP_SOURCE_COMMIT: ${{ steps.preview.outputs.head_sha }}
+        run: node scripts/materialize-staging-config.mjs worker/wrangler.staging.toml
+      - name: Upload an unpromoted Cloudflare Worker version with a PR alias
+        if: steps.preview.outputs.eligible == 'true'
+        working-directory: worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_ALIAS: ${{ steps.preview.outputs.preview_alias }}
+          HEAD_SHA: ${{ steps.preview.outputs.head_sha }}
+        run: npx wrangler versions upload --config wrangler.staging.toml --preview-alias "$PREVIEW_ALIAS" --message "UI preview $HEAD_SHA" --keep-vars
+      - name: Verify and publish the instant preview URL
+        if: steps.preview.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPLICATION_STAGING_ORIGIN: ${{ vars.APPLICATION_STAGING_ORIGIN }}
+          PREVIEW_ALIAS: ${{ steps.preview.outputs.preview_alias }}
+          PR_NUMBER: ${{ steps.preview.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.preview.outputs.head_sha }}
+        run: |
+          preview_url="https://${PREVIEW_ALIAS}-$(node -p "new URL(process.env.APPLICATION_STAGING_ORIGIN).host")"
+          PREVIEW_URL="$preview_url" node -e "const u=process.env.PREVIEW_URL;for(let i=0;i<12;i++){try{const r=await fetch(u,{redirect:'error'});if(r.ok)process.exit(0)}catch{}await new Promise(x=>setTimeout(x,2500))}throw Error('remote preview did not become available')"
+          printf 'Instant UI preview: %s\n' "$preview_url" >> "$GITHUB_STEP_SUMMARY"
+          gh pr comment "$PR_NUMBER" --body "Instant isolated UI preview for \`${HEAD_SHA}\`: ${preview_url}\n\nThis is an unpromoted Cloudflare staging version. It does not change staging or production traffic."

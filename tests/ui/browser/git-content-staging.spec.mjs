@@ -5,18 +5,18 @@ const sourceCommit = '3'.repeat(40);
 const catalogDigest = 'b'.repeat(64);
 const contentOrigin = 'https://content.example';
 
-function envelope({ empty = false } = {}) {
+function envelope({ empty = false, release = releaseId, commit = sourceCommit, digest = catalogDigest, courseTitle = 'Browser Course' } = {}) {
   return {
     state: 'ready',
     catalog: {
       contract: 'gradstudio-content-catalog/v1',
       schema_version: 1,
-      release_id: releaseId,
-      source: { repository: 'sabareeshrao/Gradstudio-2.0', commit: sourceCommit },
-      catalog_sha256: catalogDigest,
-      content_base_url: `${contentOrigin}/releases/${releaseId}/`,
+      release_id: release,
+      source: { repository: 'sabareeshrao/Gradstudio-2.0', commit },
+      catalog_sha256: digest,
+      content_base_url: `${contentOrigin}/releases/${release}/`,
       categories: empty ? [] : [{ id: 'cat-browser', title: 'Browser Category', order: 1, status: 'published' }],
-      courses: empty ? [] : [{ id: 'course-browser', category_id: 'cat-browser', title: 'Browser Course', description: 'Synthetic browser-only course.', order: 1, status: 'published', access: { display: 'open' } }],
+      courses: empty ? [] : [{ id: 'course-browser', category_id: 'cat-browser', title: courseTitle, description: 'Synthetic browser-only course.', order: 1, status: 'published', access: { display: 'open' } }],
       sections: empty ? [] : [{ id: 'section-browser', course_id: 'course-browser', title: 'Browser Section', order: 1, status: 'published' }],
       simulations: empty ? [] : [{
         id: 'sim-browser',
@@ -26,7 +26,7 @@ function envelope({ empty = false } = {}) {
         order: 1,
         status: 'published',
         access: { display: 'open' },
-        release_path: `releases/${releaseId}/content/simulations/sim-browser/index.html`
+        release_path: `releases/${release}/content/simulations/sim-browser/index.html`
       }],
       shared_assets: []
     }
@@ -92,4 +92,29 @@ test('ready empty Git catalog does not fall back to legacy educational content',
   await expect(page.locator('#courseGrid .empty-state')).toHaveText('No GradStudio 2.0 courses have been published yet.');
   await expect(page.locator('[data-component-id="catalog.course-card"]')).toHaveCount(0);
   expect(legacyRequests).toEqual([]);
+});
+
+test('an open staging tab refreshes a newly deployed content release without a page reload', async ({ page }) => {
+  let payload = envelope();
+  await installGitCatalogRoutes(page, null);
+  await page.unroute('**/api/content/v1/catalog');
+  await page.route('**/api/content/v1/catalog', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(payload)
+  }));
+  await page.goto('/?contentSource=git');
+  await expect(page.locator('[data-course-card-id="course-browser"]')).toContainText('Browser Course');
+
+  payload = envelope({
+    release: 'rel-444444444444-cccccccccccc',
+    commit: '4'.repeat(40),
+    digest: 'c'.repeat(64),
+    courseTitle: 'Automatically Refreshed Course'
+  });
+  const changed = await page.evaluate(() => window.__GRADSTUDIO_REFRESH_CONTENT__());
+
+  expect(changed).toBe(true);
+  await expect(page.locator('[data-course-card-id="course-browser"]')).toContainText('Automatically Refreshed Course');
+  await expect(page.locator('html')).toHaveAttribute('data-content-release', 'rel-444444444444-cccccccccccc');
 });

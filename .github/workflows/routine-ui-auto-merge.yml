@@ -1,0 +1,33 @@
+name: Routine UI automatic merge
+
+on:
+  workflow_run:
+    workflows: ["Application UI validation"]
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: routine-ui-auto-merge
+  cancel-in-progress: false
+
+jobs:
+  merge-eligible-routine-change:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Reclassify trusted immutable commits, await all gates, merge, and dispatch staging
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/ui/merge-routine-pr.mjs

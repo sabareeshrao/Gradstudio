@@ -27,7 +27,11 @@ test('staging browser and Worker use the same client; legacy browser client is u
   const stagingId = template.match(/^GOOGLE_OAUTH_CLIENT_ID = "([^"]+)"$/m)?.[1];
   assert.ok(stagingId);
   assert.notEqual(stagingId,'506619320686-uhlmttc48vj7osbolv8ragqkfs1v4l70.apps.googleusercontent.com');
-  assert.ok(browser.includes('window.location.origin === "https://gradstudio-app-staging.gradstudio-non-production.workers.dev"\n        ? "' + stagingId + '"\n        : "506619320686-uhlmttc48vj7osbolv8ragqkfs1v4l70.apps.googleusercontent.com"'));
+  const browserClientSelection = browser.match(/const GOOGLE_CLIENT_ID = window\.location\.origin === "https:\/\/gradstudio-app-staging\.gradstudio-non-production\.workers\.dev"\s*\? "([^"]+)"\s*:\s*"([^"]+)"/);
+  assert.deepEqual(browserClientSelection?.slice(1), [
+    stagingId,
+    '506619320686-uhlmttc48vj7osbolv8ragqkfs1v4l70.apps.googleusercontent.com'
+  ]);
   assert.ok(browser.includes('id_token: response.credential'));
   assert.ok(browser.includes('access_token: response.access_token'));
 });
