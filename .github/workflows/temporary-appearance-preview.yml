@@ -1,0 +1,30 @@
+name: Temporary appearance browser review
+on:
+  push:
+    branches: [chatgpt/global-appearance]
+    paths: ['.github/workflows/temporary-appearance-preview.yml']
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ui:validate
+      - run: npx playwright install --with-deps chrome
+      - name: Verify appearance and refresh only changed synthetic baselines
+        run: npx playwright test tests/ui/browser/ui-smoke.spec.mjs tests/ui/browser/appearance.spec.mjs tests/ui/browser/lesson-zoom.spec.mjs --update-snapshots=changed
+      - name: Export changed synthetic screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only -- tests/ui/browser/__screenshots__/ | while IFS= read -r file; do
+            echo "IMAGE_INFO:$file:$(git hash-object "$file"):$(wc -c < "$file")"
+            base64 -w 4000 "$file" | sed "s|^|SNAPSHOT_CHUNK:$file:|"
+          done

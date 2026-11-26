@@ -5956,7 +5956,7 @@ html[data-theme="dark"] :is(.course-card,.pinned-card,.course-overview-card,.cou
     box-shadow: none !important;
 }
 html[data-theme="dark"] :is(.search-box input,.player-zoom-controls button,.auth-tab) { color: #ececec !important; }
-html[data-theme="dark"] :is(input::placeholder) { color: #b4b4b4 !important; }
+html[data-theme="dark"] input::placeholder { color: #b4b4b4 !important; }
 html[data-theme="dark"] :is(.main-nav a[aria-current="page"],.main-nav button[aria-current="page"],.topic-button.is-active,.player-section-title[aria-expanded="true"],.player-lesson-link.is-active,.pin-chip.is-pinned,.player-pill.is-pinned,.course-pin-icon.is-pinned,.auth-tab.is-active,.pager button.is-active) {
     background: #303030 !important;
     color: #ffb27d !important;
