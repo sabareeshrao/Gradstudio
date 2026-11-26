@@ -1,4 +1,5 @@
 name: Temporary appearance browser review
+# Validate exact component ownership
 on:
   push:
     branches: [chatgpt/global-appearance]

@@ -1054,6 +1054,7 @@
       "scope": "dynamic",
       "status": "generated",
       "source": [
+        "static/appearance.js",
         "static/gradstudio-learn-demo.js"
       ],
       "styleOwner": "static/gradstudio-learn-demo.css",
