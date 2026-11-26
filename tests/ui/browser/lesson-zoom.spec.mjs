@@ -11,6 +11,13 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   const before=await frame.evaluate(n=>({width:n.offsetWidth,height:n.offsetHeight,src:n.getAttribute("src"),srcdoc:n.getAttribute("srcdoc"),sandbox:n.getAttribute("sandbox")}));
   const original=await frame.elementHandle();
   const toolbarBox=await toolbar.boundingBox(), sidebarBox=await sidebar.boundingBox(), shellBox=await shell.boundingBox();
+  const headerLayout=await toolbar.evaluate(n=>{
+    const back=n.querySelector(".player-back-link"), title=n.querySelector("h1"), actions=n.querySelector(".player-toolbar-actions");
+    return {backHeight:back.offsetHeight,small:matchMedia("(max-width: 820px)").matches,wide:matchMedia("(min-width: 1280px)").matches,titleAlign:getComputedStyle(title).textAlign,backY:back.getBoundingClientRect().y+back.getBoundingClientRect().height/2,actionsY:actions.getBoundingClientRect().y+actions.getBoundingClientRect().height/2};
+  });
+  expect(headerLayout.backHeight).toBe(headerLayout.small?38:42);
+  expect(headerLayout.titleAlign).toBe("center");
+  if(headerLayout.wide) expect(Math.abs(headerLayout.backY-headerLayout.actionsY)).toBeLessThanOrEqual(2);
   const fullscreenBox=await page.locator("[data-fullscreen]").boundingBox();
   const zoomBox=await page.locator(".player-zoom-controls").boundingBox();
   const dimensions=await page.locator("[data-fullscreen]").evaluate(n=>({height:n.offsetHeight,width:n.offsetWidth,small:matchMedia("(max-width: 820px)").matches}));
