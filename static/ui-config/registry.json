@@ -1047,6 +1047,33 @@
       "tests": [
         "lesson zoom bounds, reset, iframe identity, toolbar and sidebar geometry"
       ]
+    },
+    "site.appearance": {
+      "componentId": "site.appearance",
+      "label": "Shared appearance preference",
+      "scope": "dynamic",
+      "status": "generated",
+      "source": [
+        "static/appearance.js",
+        "static/gradstudio-learn-demo.js"
+      ],
+      "styleOwner": "static/gradstudio-learn-demo.css",
+      "behaviorOwner": "static/appearance.js",
+      "selectors": [
+        "[data-appearance-select]"
+      ],
+      "routeDependencies": [
+        "all public routes",
+        "player"
+      ],
+      "dataDependencies": [
+        "device-local appearance preference"
+      ],
+      "riskClass": "structural",
+      "controlMode": "code",
+      "tests": [
+        "theme selection, storage, system changes, sandboxed iframe media preference, unchanged zoom and state"
+      ]
     }
   }
 }

@@ -14,7 +14,7 @@ test("component inventory artifact is deterministic, complete, and revision-labe
   const second = buildComponentInventory({ outputRoot: secondOutput, sourceRevision: "test-revision" });
 
   assert.deepEqual(first, second);
-  assert.equal(first.componentCount, 39);
+  assert.equal(first.componentCount, 40);
   assert.equal(first.sourceRevision, "test-revision");
   assert.match(first.inventoryDigest, /^[a-f0-9]{64}$/);
   assert.equal(first.counts.riskClass.routine, 6);
