@@ -225,9 +225,12 @@
     const CATALOG_API_CACHE_KEY = `${API_CACHE_VERSION}:catalog`;
     const CAROUSEL_API_CACHE_KEY = `${API_CACHE_VERSION}:carousels`;
     const COURSE_API_CACHE_PREFIX = `${API_CACHE_VERSION}:course:`;
+    const CONTENT_REFRESH_INTERVAL_MS = 15_000;
 
     const _apiCourseCache = new Map();
     let adminRefreshPromise = null;
+    let contentRefreshPromise = null;
+    let contentRefreshTimer = null;
 
     async function fetchCourseFromAPI(courseId, options = {}) {
         const preferCache = options.preferCache === true;
@@ -368,16 +371,58 @@
         activePage = 1;
     }
 
-    async function loadGitCatalogFromAPI() {
+    async function fetchGitCatalogFromAPI() {
         const { applicationModelToUiCatalog, loadApplicationCatalog } = await import('./modules/content-catalog-v1.mjs');
         const model = await loadApplicationCatalog(API_BASE);
-        const normalized = applicationModelToUiCatalog(model);
+        return applicationModelToUiCatalog(model);
+    }
+
+    async function loadGitCatalogFromAPI() {
+        const normalized = await fetchGitCatalogFromAPI();
 
         applyCatalogData(normalized);
         catalogStatus = normalized.state;
         recordContentRelease(normalized);
         if (!topics.includes(activeTopic)) activeTopic = 'All';
         activePage = 1;
+    }
+
+    function contentReleaseKey(catalog) {
+        const release = catalog?.release || catalog || null;
+        return [catalog?.state || 'unavailable', release?.id || '', release?.sourceCommit || '', release?.catalogDigest || ''].join(':');
+    }
+
+    async function refreshGitCatalogIfChanged() {
+        if (!USE_GIT_CONTENT_CATALOG || document.hidden) return false;
+        if (contentRefreshPromise) return contentRefreshPromise;
+        contentRefreshPromise = (async () => {
+            const currentKey = contentReleaseKey(window.__GRADSTUDIO_CONTENT_RELEASE__);
+            const normalized = await fetchGitCatalogFromAPI();
+            if (normalized.state !== 'ready' || contentReleaseKey(normalized) === currentKey) return false;
+            applyCatalogData(normalized);
+            recordContentRelease(normalized);
+            if (!topics.includes(activeTopic)) activeTopic = 'All';
+            render();
+            await handleRoute();
+            window.dispatchEvent(new CustomEvent('gradstudio:content-release-changed', { detail: window.__GRADSTUDIO_CONTENT_RELEASE__ }));
+            return true;
+        })().catch((error) => {
+            console.warn('Background content catalog refresh failed.', error);
+            return false;
+        }).finally(() => {
+            contentRefreshPromise = null;
+        });
+        return contentRefreshPromise;
+    }
+
+    function startGitCatalogRefresh() {
+        if (!USE_GIT_CONTENT_CATALOG || contentRefreshTimer) return;
+        window.__GRADSTUDIO_REFRESH_CONTENT__ = refreshGitCatalogIfChanged;
+        contentRefreshTimer = window.setInterval(refreshGitCatalogIfChanged, CONTENT_REFRESH_INTERVAL_MS);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshGitCatalogIfChanged();
+        });
+        window.addEventListener('focus', refreshGitCatalogIfChanged);
     }
 
     function recordContentRelease(catalog) {
@@ -4542,5 +4587,6 @@ img,svg,canvas,video{max-width:100%;max-height:100%;}
             render();
             handleRoute();
         }
+        startGitCatalogRefresh();
     }
 })();

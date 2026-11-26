@@ -8,7 +8,7 @@ Use this playbook to translate a natural-language request into the smallest safe
 2. Decide whether the request is routine configuration, structural frontend code, or high-risk behavior/infrastructure.
 3. Edit only the owning source and regenerate deterministic output.
 4. Run registry/config/integrity tests plus affected desktop/mobile browser tests.
-5. Report commit, validation evidence, preview status and rollback commit. Never describe a commit as deployed without release evidence.
+5. Report commit, validation evidence, the revision-labeled remote preview, merge/deployment status and rollback commit. Never describe a commit as staged merely because a preview exists.
 
 ## Common prompt mappings
 
@@ -42,3 +42,5 @@ Use this playbook to translate a natural-language request into the smallest safe
 Routine changes become eligible for automatic production deployment only after the isolated pipeline and initial production cutover are explicitly authorized. Until then, validation and local preview do not modify production.
 
 For an existing homepage heading, hero action label or footer description/copyright change, use only the registered JSON and regenerated runtime; the semantic staging copy lane selects targeted browser validation automatically. Do not manually refresh structural screenshots for these text-only edits. All other operations retain their full gates. See [change classification](change-classification.md).
+
+Eligible copy-only pull requests are merged by trusted automation after every required check succeeds and are then dispatched to isolated staging. Structural and high-risk changes remain review-controlled. The unpromoted PR alias is the fastest visual feedback path; staging remains the integration proof.

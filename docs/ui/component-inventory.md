@@ -46,7 +46,7 @@ The `component_id` values below are the intended durable names for prompt-driven
 | `site.course-menu` | Course mega menu | `#courseMegaMenu`, `#courseMegaGroups`, `[data-course-menu-trigger]` | canonical JS topic/menu renderers | Catalog API | Structural |
 | `home.hero` | Homepage title, message, CTAs | `#home`, `#heroTitle`, `.hero-heading`, `.hero-subheading`, `.hero-actions` | canonical HTML/CSS | Home route, auth CTA | Routine for copy; structural for layout |
 | `home.hero-feature` | Featured module visual | `#heroCarouselCard` | canonical JS hero renderer | Catalog/featured item | Structural |
-| `catalog.shell` | Catalog and topic layout | `#courses`, `.catalog-shell` | canonical CSS/JS plus `static/modules/content-catalog-v1.mjs` | Legacy catalog in production; Git catalog only on the exact staging host when the validated flag is enabled | Structural |
+| `catalog.shell` | Catalog and topic layout | `#courses`, `.catalog-shell` | canonical CSS/JS plus `static/modules/content-catalog-v1.mjs`; staging release polling refreshes the verified Git catalog in place | Legacy catalog in production; Git catalog only on the exact staging host when the validated flag is enabled | Structural |
 | `catalog.topics` | Topic sidebar and count | `.topics-panel`, `#topicList`, `#topicCount` | canonical JS topic renderer | Catalog topics | Structural |
 | `catalog.header` | Catalog title and stats | `#catalogTitle`, `#courseCount`, `#topicCountStat` | canonical JS catalog renderer | Active filter/catalog | Routine for labels |
 | `catalog.search` | Course search | `#courseSearch` | canonical JS input/filter logic | Client catalog | Structural if behavior changes |

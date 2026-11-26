@@ -43,12 +43,13 @@ export function selectLane(records, readJson) {
   } catch { return "full"; }
 }
 
-export function classifyGit(base, head, git = (...args) => execFileSync("git", args, { encoding: "utf8" })) {
+export function classifyGit(base, head, git = (...args) => execFileSync("git", args, { encoding: "utf8" }), options = {}) {
   try {
     if (![base, head].every(x => /^[0-9a-f]{40}$/.test(x) && !/^0+$/.test(x))) return "full";
     git("merge-base", "--is-ancestor", base, head);
-    // PR checkout can be a synthetic merge. Require exactly the same tested tree.
-    git("diff", "--quiet", "HEAD", head);
+    // The PR validation checkout must be the tested tree. Trusted workflow_run
+    // automation instead verifies the immutable workflow head SHA directly.
+    if (options.requireCheckout !== false) git("diff", "--quiet", "HEAD", head);
     const raw = git("diff", "--raw", "--no-renames", "-z", base, head).split("\0");
     if (raw.pop() !== "" || raw.length % 2) return "full";
     const records = [];

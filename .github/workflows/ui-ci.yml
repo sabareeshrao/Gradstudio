@@ -11,18 +11,6 @@ on:
       - "package.json"
       - "package-lock.json"
       - "playwright.config.mjs"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/ui-ci.yml"
-      - "docs/ui/**"
-      - "scripts/ui/**"
-      - "static/**"
-      - "tests/ui/**"
-      - "package.json"
-      - "package-lock.json"
-      - "playwright.config.mjs"
-
 permissions:
   contents: read
 
@@ -59,8 +47,8 @@ jobs:
           UI_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           UI_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/ui/staging-ui-lane.mjs
-      - name: Install browser runtime
-        run: npx playwright install --with-deps chrome
+      - name: Verify runner-provided Chrome
+        run: google-chrome --version
       - name: Run targeted copy checks at desktop, tablet and mobile widths
         if: steps.lane.outputs.lane == 'copy'
         run: npm run ui:test:browser -- tests/ui/browser/routine-copy.spec.mjs

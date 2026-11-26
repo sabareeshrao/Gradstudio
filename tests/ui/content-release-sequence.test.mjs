@@ -54,6 +54,9 @@ test('content-first rollout is limited to the configured staging host and localh
   assert.match(activeClient, /featureFlags\?\.gitContentCatalogStaging === true/);
   assert.match(activeClient, /import\('\.\/modules\/content-catalog-v1\.mjs'\)/);
   assert.match(activeClient, /USE_GIT_CONTENT_CATALOG \? false : loadCatalogFromCache\(\)/);
+  assert.match(activeClient, /CONTENT_REFRESH_INTERVAL_MS = 15_000/);
+  assert.match(activeClient, /gradstudio:content-release-changed/);
+  assert.match(activeClient, /__GRADSTUDIO_REFRESH_CONTENT__/);
   assert.match(activeClient, /sandbox="\$\{frameSandbox\}"/);
 });
 
