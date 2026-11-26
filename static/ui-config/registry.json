@@ -1050,7 +1050,7 @@
     },
     "site.appearance": {
       "componentId": "site.appearance",
-      "label": "Shared appearance preference",
+      "label": "Lesson appearance preference",
       "scope": "dynamic",
       "status": "generated",
       "source": [
@@ -1063,16 +1063,15 @@
         "[data-appearance-select]"
       ],
       "routeDependencies": [
-        "all public routes",
         "player"
       ],
       "dataDependencies": [
-        "device-local appearance preference"
+        "device-local lesson appearance preference"
       ],
       "riskClass": "structural",
       "controlMode": "code",
       "tests": [
-        "theme selection, storage, system changes, sandboxed iframe media preference, unchanged zoom and state"
+        "lesson theme selection, light shell isolation, storage, system changes, sandboxed iframe media preference, unchanged zoom and state"
       ]
     }
   }

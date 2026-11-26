@@ -872,7 +872,6 @@
             node.innerHTML = signedIn
                 ? accountMenuHtml(user)
                 : '<button class="signup-button" type="button" data-auth-open="signup">Sign up</button><button class="signin-button" type="button" data-auth-open="signin">Sign in</button>';
-            node.insertAdjacentHTML("afterbegin", window.GradStudioAppearance?.control() || "");
         });
         bindAuthOpenButtons(document);
         bindAccountMenuButtons(document);

@@ -139,6 +139,6 @@ These IDs document the present implementation for targeting and regression tests
 
 
 
-## Shared appearance
+## Lesson-only appearance
 
-`site.appearance` is rendered in public auth actions and lesson toolbar (`[data-appearance-select]`); `static/appearance.js` owns Light/Dark/System, local preference, system changes, cross-tab synchronization and inherited iframe color-scheme. Dark shell palette is in canonical CSS. Do not reload iframes, use filters on lesson artwork, relax sandbox, or modify lesson source from application code. Lessons with fixed palettes require content-repository compatibility work.
+`site.appearance` retains its stable ID but is rendered only in the lesson toolbar (`[data-appearance-select]`). `static/appearance.js` owns the independent Light/Dark/System lesson preference (default Dark), local persistence, system changes and cross-tab synchronization. Canonical CSS applies the resolved color-scheme only to the lesson iframe and its backing surface. The application shell, navigation, catalog, authentication and player controls always retain their original light palette. Do not reload iframes, use filters on lesson artwork, relax sandbox, or modify lesson source from application code. Lessons with fixed palettes require content-repository compatibility work.
