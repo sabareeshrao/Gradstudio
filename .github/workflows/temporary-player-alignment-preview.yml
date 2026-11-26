@@ -1,4 +1,5 @@
 name: Temporary player alignment preview
+# Re-run with layout-settling assertion
 on:
   push:
     branches: [chatgpt/group-player-toolbar-chips]

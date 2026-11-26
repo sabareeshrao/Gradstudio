@@ -27,6 +27,6 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   await reset.click(); await expect(reset).toHaveText("100%");
   for(let i=0;i<5;i++) await minus.click(); await expect(reset).toHaveText("50%"); await expect(minus).toBeDisabled();
   await reset.focus(); await page.keyboard.press("Enter"); await expect(reset).toHaveText("100%");
-  expect(await frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
+  await expect.poll(()=>frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
   await original.dispose();
 });
