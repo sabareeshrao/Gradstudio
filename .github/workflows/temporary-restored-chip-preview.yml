@@ -1,4 +1,5 @@
 name: Temporary restored chip visual review
+# Verify settled iframe dimensions
 on:
   push:
     branches: [chatgpt/restore-player-chip-dimensions]

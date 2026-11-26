@@ -21,8 +21,8 @@ test("lesson zoom changes only iframe viewport, preserves state and keeps contro
   expect(gap).toBeLessThanOrEqual(12);
   expect(Math.abs(zoomBox.y-fullscreenBox.y)).toBeLessThanOrEqual(2);
   await plus.click(); await expect(reset).toHaveText("110%");
-  expect(await frame.evaluate(n=>n.offsetWidth)).toBeLessThan(before.width);
-  expect(await frame.evaluate(n=>n.offsetHeight)).toBeLessThan(before.height);
+  await expect.poll(()=>frame.evaluate(n=>n.offsetWidth)).toBeLessThan(before.width);
+  await expect.poll(()=>frame.evaluate(n=>n.offsetHeight)).toBeLessThan(before.height);
   expect(await toolbar.boundingBox()).toEqual(toolbarBox); expect(await sidebar.boundingBox()).toEqual(sidebarBox); expect(await shell.boundingBox()).toEqual(shellBox);
   expect(await original.evaluate(n=>n===document.querySelector(".lesson-frame"))).toBe(true);
   expect(await frame.evaluate(n=>({src:n.getAttribute("src"),srcdoc:n.getAttribute("srcdoc"),sandbox:n.getAttribute("sandbox")}))).toEqual({src:before.src,srcdoc:before.srcdoc,sandbox:before.sandbox});
