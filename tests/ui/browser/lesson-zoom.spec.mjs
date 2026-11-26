@@ -1,0 +1,27 @@
+import { test, expect } from "@playwright/test";
+test("lesson zoom changes only iframe viewport, preserves state and keeps controls available", async ({page}) => {
+  await page.route("**/*",route=>{const url=new URL(route.request().url());return url.origin==="http://127.0.0.1:4173"&&!url.pathname.startsWith("/api/")?route.continue():route.abort();});
+  await page.goto("/?demoFallback=1");
+  await page.locator("[data-component-id='catalog.course-card']").first().click();
+  await page.locator("[data-start-learning]").click();
+  const frame=page.locator(".lesson-frame"), shell=page.locator(".player-frame-shell");
+  const toolbar=page.locator(".player-toolbar"), sidebar=page.locator(".player-sidebar");
+  const minus=page.getByRole("button",{name:"Zoom out lesson"}), plus=page.getByRole("button",{name:"Zoom in lesson"}), reset=page.getByRole("button",{name:"Reset lesson zoom to 100%"});
+  await expect(reset).toHaveText("100%");
+  const before=await frame.evaluate(n=>({width:n.offsetWidth,height:n.offsetHeight,src:n.getAttribute("src"),srcdoc:n.getAttribute("srcdoc"),sandbox:n.getAttribute("sandbox")}));
+  const original=await frame.elementHandle();
+  const toolbarBox=await toolbar.boundingBox(), sidebarBox=await sidebar.boundingBox(), shellBox=await shell.boundingBox();
+  expect((await page.locator("[data-fullscreen]").boundingBox()).x).toBeLessThan((await minus.boundingBox()).x);
+  await plus.click(); await expect(reset).toHaveText("110%");
+  expect(await frame.evaluate(n=>n.offsetWidth)).toBeLessThan(before.width);
+  expect(await frame.evaluate(n=>n.offsetHeight)).toBeLessThan(before.height);
+  expect(await toolbar.boundingBox()).toEqual(toolbarBox); expect(await sidebar.boundingBox()).toEqual(sidebarBox); expect(await shell.boundingBox()).toEqual(shellBox);
+  expect(await original.evaluate(n=>n===document.querySelector(".lesson-frame"))).toBe(true);
+  expect(await frame.evaluate(n=>({src:n.getAttribute("src"),srcdoc:n.getAttribute("srcdoc"),sandbox:n.getAttribute("sandbox")}))).toEqual({src:before.src,srcdoc:before.srcdoc,sandbox:before.sandbox});
+  for(let i=0;i<9;i++) await plus.click(); await expect(reset).toHaveText("200%"); await expect(plus).toBeDisabled();
+  await reset.click(); await expect(reset).toHaveText("100%");
+  for(let i=0;i<5;i++) await minus.click(); await expect(reset).toHaveText("50%"); await expect(minus).toBeDisabled();
+  await reset.focus(); await page.keyboard.press("Enter"); await expect(reset).toHaveText("100%");
+  expect(await frame.evaluate(n=>n.offsetWidth)).toBe(before.width);
+  await original.dispose();
+});
