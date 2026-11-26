@@ -3,7 +3,7 @@
   const value = {
   "footer": {
     "copyright": "Copyright 2026 GradStudio.org. All rights reserved.",
-    "description": "Clear, structured courses focused on real understanding, practical examples, and stronger technical foundations.",
+    "description": "Clear, visual courses built for practical understanding and durable technical foundations.",
     "links": [
       {
         "componentId": "site.footer.about",
