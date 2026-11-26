@@ -3391,6 +3391,7 @@
     }
 
     function setDetailVisible(isDetailVisible) {
+        disposeLessonFullscreen();
         const detail = document.getElementById("courseDetail");
         const player = document.getElementById("coursePlayer");
         const infoPage = document.getElementById("infoPage");
@@ -3410,6 +3411,7 @@
     }
 
     function setPlayerVisible(isPlayerVisible) {
+        if (!isPlayerVisible) disposeLessonFullscreen();
         const detail = document.getElementById("courseDetail");
         const player = document.getElementById("coursePlayer");
         const infoPage = document.getElementById("infoPage");
@@ -3609,11 +3611,13 @@
     }
 
     let lessonZoomPercent = 100;
+    let disposeLessonFullscreen = () => {};
     const LESSON_ZOOM_MIN = 50;
     const LESSON_ZOOM_MAX = 200;
     const LESSON_ZOOM_STEP = 10;
 
     function renderCoursePlayer(course, lessonIndex = 0) {
+        disposeLessonFullscreen();
         const player = document.getElementById("coursePlayer");
         if (!player) return;
 
@@ -3720,6 +3724,7 @@
                             ${frameSource.type === "src" ? `src="${escapeHtml(frameSource.value)}"` : `srcdoc="${escapeHtml(frameSource.value)}"`}
                         ></iframe>
                     </div>
+                    <button type="button" class="player-fullscreen-exit" data-exit-fullscreen aria-label="Exit fullscreen" title="Exit fullscreen" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v5H3m13-5v5h5M8 21v-5H3m13 5v-5h5"/></svg></button>
                 </section>
             </div>
         `;
@@ -3782,18 +3787,60 @@
         }
 
         const fullscreen = player.querySelector("[data-fullscreen]");
-        if (fullscreen) {
-            fullscreen.addEventListener("click", async () => {
-                const main = player.querySelector(".player-main");
-                try {
-                    if (document.fullscreenElement === main) await document.exitFullscreen();
-                    else if (main?.requestFullscreen) await main.requestFullscreen();
-                } catch { /* Fullscreen may be unavailable in the current browser. */ }
-            });
-            player.querySelector(".player-main")?.addEventListener("fullscreenchange", () => {
-                fullscreen.textContent = document.fullscreenElement === player.querySelector(".player-main") ? "Exit fullscreen" : "Fullscreen";
-            });
-        }
+        const main = player.querySelector(".player-main");
+        const exitFullscreen = main.querySelector("[data-exit-fullscreen]");
+        const toolbar = main.querySelector(".player-toolbar");
+        const sidebar = player.querySelector(".player-sidebar");
+        const fullscreenEvents = new AbortController();
+        const options = { signal: fullscreenEvents.signal };
+        let immersive = false;
+        let entering = false;
+        const setImmersive = (active, restoreFocus = true) => {
+            immersive = active;
+            main.classList.toggle("is-lesson-fullscreen", active);
+            toolbar.inert = active;
+            if (sidebar) sidebar.inert = active;
+            exitFullscreen.hidden = !active;
+            fullscreen.setAttribute("aria-pressed", String(active));
+            if (active) exitFullscreen.focus({ preventScroll: true });
+            else if (restoreFocus && main.isConnected && !player.hidden) fullscreen.focus({ preventScroll: true });
+        };
+        const leaveFullscreen = async () => {
+            if (document.fullscreenElement === main) {
+                try { await document.exitFullscreen(); } catch { return; }
+            }
+            setImmersive(false);
+        };
+        fullscreen.setAttribute("aria-pressed", "false");
+        fullscreen.addEventListener("click", async () => {
+            if (entering || immersive) return;
+            entering = true;
+            try {
+                // Native fullscreen hides browser chrome where supported. CSS immersive mode
+                // is the fallback on mobile browsers where native fullscreen is unavailable.
+                if (main.requestFullscreen) await main.requestFullscreen();
+            } catch { /* Continue in viewport fullscreen. */ }
+            finally {
+                entering = false;
+                if (main.isConnected && !fullscreenEvents.signal.aborted) setImmersive(true);
+            }
+        }, options);
+        exitFullscreen.addEventListener("click", leaveFullscreen, options);
+        main.addEventListener("fullscreenchange", () => {
+            if (document.fullscreenElement === main) setImmersive(true);
+            else if (immersive) setImmersive(false);
+        }, options);
+        document.addEventListener("keydown", (event) => {
+            if (immersive && event.key === "Escape" && document.fullscreenElement !== main) {
+                event.preventDefault();
+                leaveFullscreen();
+            }
+        }, options);
+        disposeLessonFullscreen = () => {
+            fullscreenEvents.abort();
+            if (document.fullscreenElement === main) document.exitFullscreen().catch(() => {});
+            if (immersive) setImmersive(false, false);
+        };
 
         const zoomShell = player.querySelector(".player-frame-shell");
         const zoomOut = player.querySelector("[data-lesson-zoom=out]");
