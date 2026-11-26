@@ -5916,6 +5916,8 @@ body.is-about-page .info-page-shell {
 .has-lesson-controls .appearance-select { height: 44px; }
 @media (max-width: 820px) { .has-lesson-controls .appearance-select { height: 38px; } }
 .lesson-frame { color-scheme: inherit; }
+html[data-theme="dark"] .lesson-frame { color-scheme: dark; }
+html[data-theme="light"] .lesson-frame { color-scheme: light; }
 :root[data-theme="dark"] {
     --page-bg: #212121 !important;
     --panel-bg: #212121 !important;

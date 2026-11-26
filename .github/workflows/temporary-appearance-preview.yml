@@ -1,5 +1,5 @@
 name: Temporary appearance browser review
-# Validate exact component ownership
+# Validate real iframe theme inheritance without forcing media emulation
 on:
   push:
     branches: [chatgpt/global-appearance]

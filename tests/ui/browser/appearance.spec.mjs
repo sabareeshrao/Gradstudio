@@ -1,6 +1,8 @@
 import {test, expect} from "@playwright/test";
 test("appearance persists, follows system and updates sandboxed lesson without resetting zoom or state", async ({page})=>{
   await page.route("**/*",route=>{const u=new URL(route.request().url());return u.origin==="http://127.0.0.1:4173"&&!u.pathname.startsWith("/api/")?route.continue():route.abort()});
+  // Real embedded color-scheme inheritance must be tested without DevTools forcing the media query on every frame.
+  await page.emulateMedia({colorScheme:null});
   await page.goto("/?demoFallback=1");
   const root=page.locator("html");
   const mode=()=>page.locator("[data-appearance-select]:visible");
@@ -22,6 +24,7 @@ test("appearance persists, follows system and updates sandboxed lesson without r
   const child=await original.contentFrame();
   await child.locator("body").waitFor();
   await child.evaluate(()=>{window.__appearanceTestState=37});
+  await expect(frame).toHaveCSS("color-scheme","dark");
   await expect.poll(()=>child.evaluate(()=>matchMedia("(prefers-color-scheme: dark)").matches)).toBe(true);
   await page.getByRole("button",{name:"Zoom in lesson"}).click();
   const reset=page.getByRole("button",{name:"Reset lesson zoom to 100%"});
